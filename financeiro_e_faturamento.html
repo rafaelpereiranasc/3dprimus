@@ -63,7 +63,7 @@ button { cursor: pointer; border: 0; border-radius: 10px; padding: 10px 14px; fo
  <a href="calculadora_3d.html" class="nav"><span>🧮</span><b>Calculadora 3D</b></a>
  <a href="financeiro_e_faturamento.html" class="nav active"><span>＄</span><b>Financeiro</b></a>
  <a href="comissoes.html" class="nav"><span>％</span><b>Comissão (7%)</b></a>
- <div class="foot">Módulo de Produção<br>3D Primus 2026.</div>
+ <div class="foot">Módulo de Produção • Nuvem<br>3D Primus 2026.</div>
 </aside>
 
 <main class="main">
@@ -71,7 +71,7 @@ button { cursor: pointer; border: 0; border-radius: 10px; padding: 10px 14px; fo
  <div>
   <div class="eyebrow">Controle Financeiro</div>
   <h1>Financeiro da Produção</h1>
-  <div class="sub">Acompanhe faturamento, custos operacionais e detecção de inconsistências dos pedidos de produção.</div>
+  <div class="sub">Acompanhe faturamento, custos operacionais e detecção de inconsistências dos pedidos salvos na nuvem.</div>
  </div>
 </header>
 
@@ -80,7 +80,7 @@ button { cursor: pointer; border: 0; border-radius: 10px; padding: 10px 14px; fo
 <div class="grid2">
   <div class="panel">
     <h2 style="font-size:17px; margin:0 0 16px; color:var(--navy);">Resumo Financeiro da Produção</h2>
-    <div id="financeSummary"></div>
+    <div id="financeSummary"><div class="empty">Carregando dados financeiros da nuvem...</div></div>
   </div>
   <div class="panel">
     <h2 style="font-size:17px; margin:0 0 16px; color:var(--red);">Pedidos com Inconsistências</h2>
@@ -95,15 +95,18 @@ const $ = id => document.getElementById(id);
 const money = n => new Intl.NumberFormat('pt-BR',{style:'currency',currency:'BRL'}).format(Number(n)||0);
 const escapeHtml = s => String(s ?? '').replace(/[&<>"']/g, c => ({'&':'&amp;','<':'&lt;','>':'&gt;','"':'&quot;',"'":'&#39;'}[c]));
 
-function renderFinance() {
+async function renderFinance() {
     let orders = [];
     try {
-        let raw = localStorage.getItem('primus_orders');
-        if (raw) orders = JSON.parse(raw);
-        if (!Array.isArray(orders)) orders = [];
+        // Busca os pedidos direto da API do servidor no Render
+        let res = await fetch('/api/orders'); // Nota: se a rota dos pedidos no seu servidor for outra (ex: /api/producao), ajuste aqui
+        if (res.ok) {
+            orders = await res.json();
+        }
     } catch (err) {
         orders = [];
     }
+    if (!Array.isArray(orders)) orders = [];
 
     let valid = orders.filter(o => o && o.status !== 'Cancelado');
     let faturamento = valid.reduce((s, o) => s + (Number(o.total) || 0), 0);
