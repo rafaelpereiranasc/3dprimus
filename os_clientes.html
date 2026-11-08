@@ -53,7 +53,6 @@ td small { color: var(--muted); }
 </head>
 <body>
 <div class="app">
-<!-- MENU LATERAL COM O PREFIXO OS_ -->
 <aside class="sidebar">
  <div class="brand"><div class="logo">3D</div><div><strong>3D PRIMUS</strong><small>Ordens de Serviço</small></div></div>
  <a href="index.html" class="nav"><span>⌂</span><b>Menu Principal</b></a>
@@ -61,7 +60,7 @@ td small { color: var(--muted); }
  <a href="os_nova.html" class="nav"><span>＋</span><b>Nova Ordem (OS)</b></a>
  <a href="os_clientes.html" class="nav active"><span>👤</span><b>Clientes da OS</b></a>
  <a href="os_financeiro.html" class="nav"><span>＄</span><b>Financeiro da OS</b></a>
- <div class="foot">Módulo OS • Prefixo `os_`<br>3D Primus 2026.</div>
+ <div class="foot">Módulo OS • Nuvem<br>3D Primus 2026.</div>
 </aside>
 
 <main class="main">
@@ -69,7 +68,7 @@ td small { color: var(--muted); }
  <div>
   <div class="eyebrow">Diretório de Atendimento</div>
   <h1>Clientes da Assistência Técnica</h1>
-  <div class="sub">Relação de clientes extraída automaticamente das Ordens de Serviço cadastradas.</div>
+  <div class="sub">Relação de clientes extraída automaticamente das Ordens de Serviço cadastradas na nuvem.</div>
  </div>
 </header>
 
@@ -87,7 +86,7 @@ td small { color: var(--muted); }
      <th>Último Equipamento Atendido</th>
     </tr>
    </thead>
-   <tbody id="clientRows"></tbody>
+   <tbody id="clientRows"><tr><td colspan="4" class="empty">Carregando clientes da nuvem...</td></tr></tbody>
   </table>
  </div>
 </div>
@@ -96,15 +95,25 @@ td small { color: var(--muted); }
 </div>
 
 <script>
-let osList = JSON.parse(localStorage.getItem('primus_os_list')) || [];
+let osList = [];
 
 const $ = id => document.getElementById(id);
 
 function escapeHtml(s){return String(s??'').replace(/[&<>"']/g,c=>({'&':'&amp;','<':'&lt;','>':'&gt;','"':'&quot;',"'":'&#39;'}[c]))}
 
+async function loadClientsData() {
+    try {
+        let res = await fetch('/api/os');
+        osList = await res.json();
+        if(!Array.isArray(osList)) osList = [];
+    } catch(e) {
+        osList = [];
+    }
+    renderClients();
+}
+
 function getUniqueClients(){
     let map = {};
-    // Agrupa e consolida clientes a partir da lista de OSs
     osList.forEach(o => {
         let name = (o.client || '').trim();
         if(!name) return;
@@ -143,9 +152,7 @@ function renderClients(){
     `).join('') : `<tr><td colspan="4" class="empty">Nenhum cliente encontrado nas Ordens de Serviço.</td></tr>`;
 }
 
-document.addEventListener('DOMContentLoaded', () => {
-    renderClients();
-});
+document.addEventListener('DOMContentLoaded', loadClientsData);
 </script>
 </body>
 </html>
