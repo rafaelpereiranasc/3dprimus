@@ -73,7 +73,7 @@ td strong { display: block; font-size: 13.5px; }
  <a href="calculadora_3d.html" class="nav"><span>🧮</span><b>Calculadora 3D</b></a>
  <a href="financeiro_e_faturamento.html" class="nav"><span>＄</span><b>Financeiro</b></a>
  <a href="comissoes.html" class="nav active"><span>％</span><b>Comissão (7%)</b></a>
- <div class="foot">Módulo de Produção<br>3D Primus 2026.</div>
+ <div class="foot">Módulo de Produção • Nuvem<br>3D Primus 2026.</div>
 </aside>
 
 <main class="main print-area">
@@ -81,7 +81,7 @@ td strong { display: block; font-size: 13.5px; }
  <div>
   <div class="eyebrow">Gestão de Pagamentos</div>
   <h1>Comissões dos Makers (7%)</h1>
-  <div class="sub">Acompanhe os valores de comissão calculados sobre o faturamento dos pedidos por responsável.</div>
+  <div class="sub">Acompanhe os valores de comissão calculados sobre o faturamento dos pedidos na nuvem.</div>
  </div>
  <div class="actions no-print">
   <button type="button" class="secondary" onclick="window.print()"><i class="fa-solid fa-print"></i> Imprimir Relatório</button>
@@ -99,9 +99,6 @@ td strong { display: block; font-size: 13.5px; }
   </div>
   <select id="filterMaker" onchange="renderCommissions()">
    <option value="">Maker (Todos)</option>
-   <option value="Rafael">Rafael</option>
-   <option value="Daniel">Daniel</option>
-   <option value="Outro">Outro</option>
   </select>
  </div>
  <div class="table-wrap">
@@ -113,9 +110,11 @@ td strong { display: block; font-size: 13.5px; }
      <th>Maker Responsável</th>
      <th>Valor Total do Pedido</th>
      <th>Comissão (7%)</th>
-   </tr>
+    </tr>
    </thead>
-   <tbody id="commissionRows"></tbody>
+   <tbody id="commissionRows">
+    <tr><td colspan="5" class="empty">Carregando comissões da nuvem...</td></tr>
+   </tbody>
   </table>
  </div>
 </div>
@@ -123,30 +122,43 @@ td strong { display: block; font-size: 13.5px; }
 </div>
 
 <script>
+let ordersCache = [];
+
 const $ = id => document.getElementById(id);
 const money = n => new Intl.NumberFormat('pt-BR',{style:'currency',currency:'BRL'}).format(Number(n)||0);
 const escapeHtml = s => String(s ?? '').replace(/[&<>"']/g, c => ({'&':'&amp;','<':'&lt;','>':'&gt;','"':'&quot;',"'":'&#39;'}[c]));
 
-function renderCommissions() {
-    let orders = [];
+async function loadCommissionsData() {
     try {
-        let raw = localStorage.getItem('primus_orders');
-        if (raw) orders = JSON.parse(raw);
-        if (!Array.isArray(orders)) orders = [];
+        let res = await fetch('/api/orders');
+        let data = await res.json();
+        ordersCache = Array.isArray(data) ? data : [];
     } catch(e) {
-        orders = [];
+        ordersCache = [];
     }
+    updateMakerDropdown();
+    renderCommissions();
+}
 
+function updateMakerDropdown() {
+    let select = $('filterMaker');
+    if(!select) return;
+    let currentVal = select.value;
+    let makers = [...new Set(ordersCache.map(o => (o.responsible || '').trim()).filter(Boolean))].sort();
+    
+    select.innerHTML = `<option value="">Maker (Todos)</option>` + 
+        makers.map(m => `<option value="${escapeHtml(m)}" ${m === currentVal ? 'selected' : ''}>${escapeHtml(m)}</option>`).join('');
+}
+
+function renderCommissions() {
     let q = ($('searchCommission')?.value || '').toLowerCase();
     let dStart = $('filterStart')?.value || '';
     let dEnd = $('filterEnd')?.value || '';
     let makerFilter = $('filterMaker')?.value || '';
 
-    // Filtra os pedidos válidos aplicando busca por texto, datas e maker
-    let valid = orders.filter(o => {
+    let valid = ordersCache.filter(o => {
         if (!o || o.status === 'Cancelado') return false;
-        
-        if (makerFilter && o.responsible !== makerFilter) return false;
+        if (makerFilter && (o.responsible || '').trim() !== makerFilter) return false;
         if (dStart && o.startDate && o.startDate < dStart) return false;
         if (dEnd && o.startDate && o.startDate > dEnd) return false;
 
@@ -154,7 +166,6 @@ function renderCommissions() {
         return queryStr.includes(q);
     });
 
-    // O totalizador do topo considera os pedidos filtrados (ou todos se não houver filtro ativo)
     let totalFat = valid.reduce((s, o) => s + (Number(o.total) || 0), 0);
     let totalComissao = totalFat * 0.07;
 
@@ -181,9 +192,7 @@ function renderCommissions() {
     }).join('') : `<tr><td colspan="5" class="empty">Nenhum pedido encontrado para os filtros selecionados.</td></tr>`;
 }
 
-document.addEventListener('DOMContentLoaded', () => {
-    renderCommissions();
-});
+document.addEventListener('DOMContentLoaded', loadCommissionsData);
 </script>
 </body>
 </html>
