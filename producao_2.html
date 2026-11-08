@@ -251,7 +251,6 @@ function formatDeadline(deadlineStr, statusProd) {
     }
 }
 
-// Carregar pedidos da nuvem (SQLite / Render)
 async function loadOrders() {
     try {
         let res = await fetch('/api/orders');
@@ -334,7 +333,6 @@ function editOrder(id){
     });
 }
 
-// Salvar pedido na nuvem via API POST
 async function saveOrder(e){
     e.preventDefault();
     let id = $('orderId')?.value || ('p' + Date.now());
@@ -376,7 +374,6 @@ async function saveOrder(e){
     }
 }
 
-// Excluir pedido da nuvem via API DELETE
 async function deleteOrder(id){
     if(confirm('Excluir este pedido do servidor?')){
         try {
