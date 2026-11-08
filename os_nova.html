@@ -47,7 +47,6 @@ button { cursor: pointer; border: 0; border-radius: 10px; padding: 10px 14px; fo
 .client-row select { flex: 1; }
 .section-title { grid-column: 1/-1; font-size: 14px; color: var(--navy); border-bottom: 2px solid var(--line); padding-bottom: 6px; margin-top: 10px; font-weight: 800; text-transform: uppercase; letter-spacing: 0.5px; }
 
-/* Estilos do Checklist Interativo (V ou X) */
 .checklist-box { background: #f8fafc; border: 1px solid #e3e9ef; padding: 15px; border-radius: 10px; margin-top: 5px; }
 .checklist-item { display: flex; justify-content: space-between; align-items: center; padding: 6px 0; border-bottom: 1px dashed #e2e8f0; font-size: 13px; font-weight: normal; color: var(--ink); }
 .checklist-options { display: flex; gap: 15px; }
@@ -73,6 +72,8 @@ button { cursor: pointer; border: 0; border-radius: 10px; padding: 10px 14px; fo
  <a href="index.html" class="nav"><span>⌂</span><b>Menu Principal</b></a>
  <a href="os_lista.html" class="nav"><span>📄</span><b>Lista de Serviços</b></a>
  <a href="os_nova.html" class="nav active"><span>＋</span><b>Nova Ordem (OS)</b></a>
+ <a href="os_clientes.html" class="nav"><span>👤</span><b>Clientes da OS</b></a>
+ <a href="os_financeiro.html" class="nav"><span>＄</span><b>Financeiro da OS</b></a>
  <div class="foot">Módulo OS • 3D Primus 2026.</div>
 </aside>
 
@@ -122,7 +123,6 @@ button { cursor: pointer; border: 0; border-radius: 10px; padding: 10px 14px; fo
    <label class="field">Modelo *<input id="eqModel" required placeholder="Ex: Ender 3 Pro, Moto G20"></label>
    <label class="field">Número de Série (S/N)<input id="eqSerial" placeholder="Ex: SN987654321"></label>
 
-   <!-- CHECKLIST DINÂMICO -->
    <div class="field full">
     <span>Checklist de Entrada / Acessórios (V = OK | X = Não OK / Defeito):</span>
     
@@ -278,8 +278,16 @@ function handleEqTypeChange(){
 
 async function loadClients(selectedName = '') {
     try {
-        let res = await fetch('/api/clients'); // Caso tenha API de clientes, ou buscamos das OS se necessário.
-        clientListCache = await res.json();
+        let res = await fetch('/api/os');
+        let data = await res.json();
+        // Extrai clientes únicos das OS ou usa o armazenamento se houver rota dedicada
+        let uniqueClients = {};
+        if (Array.isArray(data)) {
+            data.forEach(o => {
+                if (o.client) uniqueClients[o.client] = { name: o.client, phone: o.phone || '' };
+            });
+        }
+        clientListCache = Object.values(uniqueClients);
     } catch(e) {
         clientListCache = [];
     }
@@ -320,31 +328,22 @@ function closeClientModal(){
 
 async function saveQuickClient(e){
     e.preventDefault();
-    let newClient = {
-        id: 'cli_' + Date.now(),
-        name: $('qcName').value.trim(),
-        phone: $('qcPhone').value.trim(),
-        cpf: $('qcCpf').value.trim(),
-        address: $('qcAddress').value.trim(),
-        birthday: $('qcBirthday').value
-    };
-
-    try {
-        let res = await fetch('/api/clients', {
-            method: 'POST',
-            headers: { 'Content-Type': 'application/json' },
-            body: JSON.stringify(newClient)
-        });
-        if(res.ok) {
-            closeClientModal();
-            loadClients(newClient.name);
-            toast('Cliente cadastrado com sucesso na nuvem!');
-        } else {
-            alert('Erro ao cadastrar cliente.');
-        }
-    } catch(err) {
-        alert('Erro de conexão.');
+    let name = $('qcName').value.trim();
+    let phone = $('qcPhone').value.trim();
+    
+    if(name) {
+        clientListCache.push({ name, phone });
+        closeClientModal();
+        populateClientsManual(name);
+        toast('Cliente adicionado!');
     }
+}
+
+function populateClientsManual(selectedName = '') {
+    let select = $('clientSelect');
+    if(!select) return;
+    select.innerHTML = `<option value="">Selecione um cliente cadastrado...</option>` + 
+        clientListCache.map(c => `<option value="${escapeHtml(c.name)}" ${c.name === selectedName ? 'selected' : ''}>${escapeHtml(c.name)} — Tel: ${escapeHtml(c.phone)}</option>`).join('');
 }
 
 function escapeHtml(s){return String(s??'').replace(/[&<>"']/g,c=>({'&':'&amp;','<':'&lt;','>':'&gt;','"':'&quot;',"'":'&#39;'}[c]))}
@@ -484,7 +483,7 @@ async function saveOS(e){
             body: JSON.stringify(item)
         });
         if(res.ok){
-            toast('Ordem de serviço salva com sucesso na nuvem!');
+            toast('Ordem de serviço salva na nuvem com sucesso!');
             setTimeout(() => { window.location.href = 'os_lista.html'; }, 1200);
         } else {
             alert('Erro ao salvar OS no servidor.');
