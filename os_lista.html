@@ -75,7 +75,7 @@ td small { color: var(--muted); max-width: 250px; white-space: nowrap; overflow:
 @media print {
   body * { visibility: hidden; }
   .print-container, .print-container * { visibility: visible; }
-  .print-container { position: absolute; left: 0; top: 0; width: 100%; background: white; display: block; font-family: sans-serif; color: #000; }
+  .print-container { position: absolute; left: 0; top: 0; width: 100%; background: white; display: block; font-family: sans-serif; color: #000; font-size: 12px; padding: 15px; }
   .no-print { display: none !important; }
   @page { size: A4 portrait; margin: 10mm; }
 }
@@ -272,6 +272,39 @@ function printSelectedType(type){
     closeChoiceModal();
     let o = osCache.find(x => x.id === activePrintId);
     if(!o) return;
+
+    let chkHtml = '';
+    if(o.checklistTextos && Array.isArray(o.checklistTextos)){
+        chkHtml = o.checklistTextos.map(item => `<div>• ${escapeHtml(item)}</div>`).join('');
+    }
+
+    let printContainer = $('printArea');
+    if(printContainer){
+        printContainer.innerHTML = `
+            <div style="border: 2px solid #333; padding: 15px; border-radius: 8px; margin-bottom: 20px;">
+                <div style="display: flex; justify-content: space-between; align-items: center; border-bottom: 2px solid #333; padding-bottom: 10px; margin-bottom: 10px;">
+                    <div>
+                        <h2 style="margin:0; font-size: 18px; color: #10243a;">3D PRIMUS - Ordem de Serviço #${escapeHtml(o.osNumber)}</h2>
+                        <small>Do Conceito à Criação • Tel: (99) 99817-8035 • Rua Luís Domingues, nº 1158, Centro</small>
+                    </div>
+                    <div style="text-align: right; font-size: 12px;">
+                        <div>Abertura: ${o.date ? new Date(o.date+'T12:00:00').toLocaleDateString('pt-BR') : '—'}</div>
+                        <div>Previsão: ${o.deadline ? new Date(o.deadline+'T12:00:00').toLocaleDateString('pt-BR') : '—'}</div>
+                    </div>
+                </div>
+                <div style="margin-bottom: 8px;"><strong>Cliente:</strong> ${escapeHtml(o.client)} (${escapeHtml(o.phone || 'Sem telefone')})</div>
+                <div style="margin-bottom: 8px;"><strong>Equipamento:</strong> ${escapeHtml(o.item || o.eqType)} | <strong>Marca/Modelo:</strong> ${escapeHtml(o.eqBrand)} ${escapeHtml(o.eqModel)} | <strong>S/N:</strong> ${escapeHtml(o.eqSerial || 'Não informado')}</div>
+                <div style="margin-bottom: 8px;"><strong>Defeito Relatado:</strong> ${escapeHtml(o.reportedDefect)}</div>
+                <div style="margin-bottom: 8px;"><strong>Diagnóstico / Serviço:</strong> ${escapeHtml(o.diagnostic || 'Aguardando')} / ${escapeHtml(o.executedService || 'Aguardando')}</div>
+                <div style="margin-bottom: 8px;"><strong>Checklist / Acessórios:</strong><div style="display:grid; grid-template-columns: 1fr 1fr; gap: 4px; margin-top:4px;">${chkHtml || 'Nenhum item marcado'}</div></div>
+                <div style="display: flex; justify-content: space-between; border-top: 1px solid #ccc; padding-top: 8px; margin-top: 10px; font-weight: bold;">
+                    <div>Status: ${escapeHtml(o.status)}</div>
+                    <div>Valor Total: ${money(o.total)}</div>
+                </div>
+                ${type === 'saida' ? `<div style="margin-top:10px; font-size:10px; border-top:1px dashed #666; padding-top:6px;"><strong>Termo de Garantia:</strong> ${escapeHtml(o.warrantyTerm || 'Garantia conforme regras da loja.')}</div>` : ''}
+            </div>
+        `;
+    }
     window.print();
 }
 
