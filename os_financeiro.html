@@ -64,7 +64,7 @@ button { cursor: pointer; border: 0; border-radius: 10px; padding: 10px 14px; fo
  <a href="os_nova.html" class="nav"><span>＋</span><b>Nova Ordem (OS)</b></a>
  <a href="os_clientes.html" class="nav"><span>👤</span><b>Clientes da OS</b></a>
  <a href="os_financeiro.html" class="nav active"><span>＄</span><b>Financeiro da OS</b></a>
- <div class="foot">Módulo OS • 3D Primus 2026.</div>
+ <div class="foot">Módulo OS • Nuvem<br>3D Primus 2026.</div>
 </aside>
 
 <main class="main">
@@ -72,7 +72,7 @@ button { cursor: pointer; border: 0; border-radius: 10px; padding: 10px 14px; fo
  <div>
   <div class="eyebrow">Gestão Financeira da Oficina</div>
   <h1>Financeiro de Ordens de Serviço</h1>
-  <div class="sub">Acompanhe faturamento, entradas em caixa e saldos a receber filtrados por equipamento.</div>
+  <div class="sub">Acompanhe faturamento, entradas em caixa e saldos a receber da nuvem.</div>
  </div>
 </header>
 
@@ -88,7 +88,7 @@ button { cursor: pointer; border: 0; border-radius: 10px; padding: 10px 14px; fo
 <div class="grid2">
   <div class="panel">
     <h2 style="font-size:17px; margin:0 0 16px; color:var(--navy);">Resumo Financeiro Filtrado</h2>
-    <div id="osFinanceSummary"></div>
+    <div id="osFinanceSummary"><div class="empty">Carregando dados financeiros...</div></div>
   </div>
   <div class="panel">
     <h2 style="font-size:17px; margin:0 0 16px; color:var(--red);">OSs Pendentes de Pagamento</h2>
@@ -99,24 +99,24 @@ button { cursor: pointer; border: 0; border-radius: 10px; padding: 10px 14px; fo
 </div>
 
 <script>
+let osListCache = [];
+
 const $ = id => document.getElementById(id);
 const money = n => new Intl.NumberFormat('pt-BR',{style:'currency',currency:'BRL'}).format(Number(n)||0);
 
-function getOSList() {
+async function loadFinanceData() {
     try {
-        let raw = localStorage.getItem('primus_os_list');
-        if (raw) {
-            let parsed = JSON.parse(raw);
-            if (Array.isArray(parsed)) return parsed;
-        }
-    } catch(e) {}
-    return [];
+        let res = await fetch('/api/os');
+        osListCache = await res.json();
+        if(!Array.isArray(osListCache)) osListCache = [];
+    } catch(e) {
+        osListCache = [];
+    }
+    renderOSFinance();
 }
 
-// Função auxiliar para obter o tipo de equipamento de forma inteligente
 function getEquipType(o) {
     if (o.eqType && o.eqType.trim()) return o.eqType.trim();
-    // Fallback caso seja uma OS antiga salva apenas com o campo 'item'
     if (o.item && o.item.trim()) return o.item.split(' ')[0]; 
     return 'Outros';
 }
@@ -137,12 +137,11 @@ function metric(label, value, hint, dot = '') {
 }
 
 function renderOSFinance() {
-    let osList = getOSList();
-    updateEqTypeDropdown(osList);
+    updateEqTypeDropdown(osListCache);
 
     let selectedType = $('filterEqType')?.value || '';
 
-    let filtered = osList.filter(o => {
+    let filtered = osListCache.filter(o => {
         if (selectedType && getEquipType(o) !== selectedType) return false;
         return true;
     });
@@ -182,7 +181,7 @@ function renderOSFinance() {
             <div class="moneyline">
                 <div>
                     <strong>#${escapeHtml(o.osNumber || '000')} - ${escapeHtml(o.client)}</strong>
-                    <small style="color:var(--muted);display:block;">${escapeHtml(o.eqType || o.item || 'Equipamento')} • Falta: ${money((+o.total||0) - (+o.paid||0))}</small>
+                    <small style="color:var(--muted);display:block;">${escapeHtml(getEquipType(o))} • Falta: ${money((+o.total||0) - (+o.paid||0))}</small>
                 </div>
                 <a href="os_lista.html" class="mini" style="align-self:center;">Ver OS</a>
             </div>
@@ -194,11 +193,7 @@ function escapeHtml(s) {
     return String(s ?? '').replace(/[&<>"']/g, c => ({'&':'&amp;','<':'&lt;','>':'&gt;','"':'&quot;',"'":'&#39;'}[c]));
 }
 
-if (document.readyState === 'loading') {
-    document.addEventListener('DOMContentLoaded', renderOSFinance);
-} else {
-    renderOSFinance();
-}
+document.addEventListener('DOMContentLoaded', loadFinanceData);
 </script>
 </body>
 </html>
