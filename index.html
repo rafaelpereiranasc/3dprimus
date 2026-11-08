@@ -1,0 +1,73 @@
+<!doctype html>
+<html lang="pt-BR">
+<head>
+<meta charset="utf-8">
+<meta name="viewport" content="width=device-width,initial-scale=1">
+<title>3D Primus • Menu Principal</title>
+<link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.4.0/css/all.min.css">
+<style>
+:root {
+  --navy: #10243a;
+  --blue: #1769aa;
+  --orange: #f28b27;
+  --bg: #f3f6fa;
+  --ink: #172b3a;
+  --muted: #6d7c8b;
+  --line: #e3e9ef;
+  --white: #fff;
+}
+* { box-sizing: border-box; }
+body { margin: 0; font-family: Inter, Segoe UI, Arial, sans-serif; background: var(--bg); color: var(--ink); display: grid; place-items: center; min-height: 100vh; padding: 20px; }
+.container { width: min(460px, 100%); }
+.header { text-align: center; margin-bottom: 30px; }
+.logo { width: 64px; height: 64px; border-radius: 16px; background: linear-gradient(135deg, #2583cf, var(--orange)); display: grid; place-items: center; font-weight: 900; color: white; font-size: 22px; margin: 0 auto 15px; box-shadow: 0 8px 20px rgba(23,105,170,0.2); }
+h1 { margin: 0 0 6px; font-size: 24px; color: var(--navy); }
+p { color: var(--muted); font-size: 14px; margin: 0; }
+.grid { display: flex; flex-direction: column; gap: 14px; }
+.card { background: white; border: 1px solid var(--line); border-radius: 16px; padding: 18px 22px; text-decoration: none; color: var(--ink); box-shadow: 0 4px 16px rgba(24,52,76,0.04); transition: transform 0.2s, border-color 0.2s, box-shadow 0.2s; display: flex; align-items: center; gap: 16px; }
+.card:hover { transform: translateY(-2px); border-color: var(--blue); box-shadow: 0 8px 24px rgba(23,105,170,0.12); }
+.card-icon { width: 46px; height: 46px; border-radius: 12px; background: #e7f2ff; color: var(--blue); display: grid; place-items: center; font-size: 18px; flex-shrink: 0; }
+.card h2 { margin: 0 0 2px; font-size: 16px; color: var(--navy); }
+.card p { margin: 0; font-size: 13px; color: var(--muted); }
+</style>
+</head>
+<body>
+<div class="container">
+ <div class="header">
+  <div class="logo">3D</div>
+  <h1>3D PRIMUS</h1>
+  <p>Painel de Controle Principal</p>
+ </div>
+ <div class="grid">
+  
+  <!-- 1. Ordem de Serviço -->
+  <a href="ordens_servico.html" class="card">
+   <div class="card-icon"><i class="fa-solid fa-file-invoice"></i></div>
+   <div>
+    <h2>1. Ordem de Serviço</h2>
+    <p>Gerenciamento de fichas de atendimento e clientes.</p>
+   </div>
+  </a>
+
+  <!-- 2. Produção -->
+  <a href="producao_2.html" class="card">
+   <div class="card-icon" style="background:#e1f5eb; color:#16845b;"><i class="fa-solid fa-boxes-stacked"></i></div>
+   <div>
+    <h2>2. Produção</h2>
+    <p>Acompanhamento de pedidos, prazos e relatórios.</p>
+   </div>
+  </a>
+
+  <!-- 3. Controle de Impressora -->
+  <a href="controle.html" class="card">
+   <div class="card-icon" style="background:#e8f4fd; color:#1769aa;"><i class="fa-solid fa-print"></i></div>
+   <div>
+    <h2>3. Controle de Impressora</h2>
+    <p>Rastreabilidade de números de série, fornecedores e garantia.</p>
+   </div>
+  </a>
+
+ </div>
+</div>
+</body>
+</html>

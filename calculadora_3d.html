@@ -1,0 +1,235 @@
+<!doctype html>
+<html lang="pt-BR">
+<head>
+<meta charset="utf-8">
+<meta name="viewport" content="width=device-width,initial-scale=1">
+<title>3D Primus • Calculadora 3D</title>
+<link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.4.0/css/all.min.css">
+<style>
+:root {
+  --navy: #10243a;
+  --blue: #1769aa;
+  --orange: #f28b27;
+  --bg: #f3f6fa;
+  --ink: #172b3a;
+  --muted: #6d7c8b;
+  --line: #e3e9ef;
+  --white: #fff;
+  --green: #16845b;
+  --red: #c83c48;
+}
+* { box-sizing: border-box; }
+body { margin: 0; font-family: Inter, Segoe UI, Arial, sans-serif; background: var(--bg); color: var(--ink); }
+button, input, select, textarea { font: inherit; }
+button { cursor: pointer; border: 0; border-radius: 10px; padding: 10px 14px; font-weight: 650; }
+.app { display: flex; min-height: 100vh; }
+.sidebar { width: 240px; background: var(--navy); color: #fff; padding: 24px 15px; display: flex; flex-direction: column; gap: 7px; z-index: 10; position: relative; }
+.brand { display: flex; align-items: center; gap: 10px; padding: 0 8px 25px; }
+.logo { width: 40px; height: 40px; border-radius: 12px; background: linear-gradient(135deg, #2583cf, var(--orange)); display: grid; place-items: center; font-weight: 900; color: white; }
+.brand strong { display: block; font-size: 15px; letter-spacing: .8px; }
+.brand small { color: #b7c8d7; }
+.nav { color: #c7d4df; background: transparent; text-align: left; padding: 12px; border-radius: 9px; display: flex; align-items: center; gap: 10px; text-decoration: none; border: none; width: 100%; cursor: pointer; font-size: 13.5px; }
+.nav.active, .nav:hover { background: #203d58; color: white; }
+.nav span { display: inline-block; width: 20px; text-align: center; }
+.sidebar .foot { margin-top: auto; color: #a8bdcf; font-size: 12px; line-height: 1.5; padding: 12px; }
+.main { flex: 1; min-width: 0; padding: 28px clamp(16px, 3vw, 36px); }
+.top { display: flex; justify-content: space-between; gap: 16px; align-items: center; margin-bottom: 24px; }
+.eyebrow { color: var(--green); font-weight: 750; font-size: 11px; letter-spacing: 1.4px; text-transform: uppercase; }
+.top h1 { margin: 5px 0; font-size: clamp(23px, 3vw, 30px); }
+.sub { color: var(--muted); font-size: 14px; }
+.panel { background: white; border: 1px solid var(--line); border-radius: 15px; padding: 20px; box-shadow: 0 4px 16px rgba(24,52,76,0.04); margin-bottom: 20px; }
+input, select { border: 1px solid #d8e1e9; border-radius: 9px; padding: 10px 11px; background: white; color: var(--ink); width: 100%; }
+input:focus, select:focus { outline: 2px solid #b8d9f4; border-color: var(--blue); }
+.form-grid { display: grid; grid-template-columns: repeat(3, minmax(0, 1fr)); gap: 14px; margin-bottom: 15px; }
+.field { display: flex; flex-direction: column; gap: 6px; font-size: 12px; font-weight: 700; color: #526373; }
+.table-wrap { overflow: auto; }
+table { width: 100%; border-collapse: collapse; min-width: 800px; }
+th { text-align: left; background: #f8fafc; color: var(--muted); font-size: 11px; text-transform: uppercase; letter-spacing: .6px; padding: 13px 14px; }
+td { padding: 14px; border-top: 1px solid var(--line); font-size: 13px; vertical-align: middle; }
+td strong { display: block; font-size: 13px; }
+.primary { background: var(--blue); color: #fff; }
+.danger { background: #fff0f1; color: var(--red); }
+.mini { padding: 6px 8px; font-size: 12px; background: #edf2f7; color: var(--navy); }
+.empty { padding: 35px; text-align: center; color: var(--muted); }
+.toast { position: fixed; bottom: 20px; right: 20px; background: var(--navy); color: white; padding: 12px 18px; border-radius: 10px; z-index: 2000; box-shadow: 0 8px 25px rgba(0,0,0,0.2); }
+.hidden { display: none !important; }
+</style>
+</head>
+<body>
+<div class="app">
+<aside class="sidebar">
+ <div class="brand"><div class="logo">3D</div><div><strong>3D PRIMUS</strong><small>Produção & Custos</small></div></div>
+ <a href="index.html" class="nav"><span>⌂</span><b>Menu Principal</b></a>
+ <a href="producao_2.html" class="nav"><span>📦</span><b>Pedidos</b></a>
+ <a href="calculadora_3d.html" class="nav active"><span>🧮</span><b>Calculadora 3D</b></a>
+ <a href="financeiro_e_faturamento.html" class="nav"><span>＄</span><b>Financeiro</b></a>
+ <a href="comissoes.html" class="nav"><span>％</span><b>Comissão (7%)</b></a>
+ <div class="foot">Módulo de Produção<br>3D Primus 2026.</div>
+</aside>
+
+<main class="main">
+<header class="top">
+ <div>
+  <div class="eyebrow">Precificação</div>
+  <h1>Calculadora 3D</h1>
+  <div class="sub">Calcule custos exatos de filamento, energia, desgaste e margem de lucro.</div>
+ </div>
+</header>
+
+<div class="panel">
+    <h3 style="margin-top:0; font-size:16px; color:var(--navy); margin-bottom:15px;"><i class="fa-solid fa-calculator"></i> Nova Peça ou Orçamento</h3>
+    <form id="costForm" onsubmit="saveCostItem(event)">
+       <input type="hidden" id="costId">
+       <div class="form-grid">
+          <label class="field">Nome da Peça / Modelo *<input id="cName" required placeholder="Ex: Suporte Headset"></label>
+          <label class="field">Tempo de Impressão (Minutos) *<input id="cTime" type="number" min="0" required placeholder="Ex: 180" oninput="liveCalc()"></label>
+          <label class="field">Peso do Material (Gramas) *<input id="cWeight" type="number" min="0" step="0.1" required placeholder="Ex: 45" oninput="liveCalc()"></label>
+          
+          <label class="field">Valor do Filamento (R$ / kg) *<input id="cFilamentPrice" type="number" min="0" step="0.01" value="130.00" required oninput="liveCalc()"></label>
+          <label class="field">Mão de Obra (Horas)<input id="cLaborHours" type="number" min="0" step="0.1" value="0" placeholder="Ex: 0.5" oninput="liveCalc()"></label>
+          <label class="field">Insumos (Cola, embalagem - R$)<input id="cSupplies" type="number" min="0" step="0.01" value="1.35" placeholder="1.35" oninput="liveCalc()"></label>
+          
+          <label class="field">Fator de Markup *<input id="cMarkup" type="number" min="1" step="0.1" value="3.0" required oninput="liveCalc()"></label>
+       </div>
+       
+       <div style="background:#f8fafc; border:1px solid var(--line); border-radius:10px; padding:15px; margin: 15px 0; display:grid; grid-template-columns: repeat(5, 1fr); gap:10px; text-align:center;">
+          <div><small style="color:var(--muted)">Custo Material</small><div id="previewMaterial" style="font-weight:800; font-size:14px; color:var(--navy)">R$ 0,00</div></div>
+          <div><small style="color:var(--muted)">Energia</small><div id="previewEnergy" style="font-weight:800; font-size:14px; color:var(--navy)">R$ 0,00</div></div>
+          <div><small style="color:var(--muted)">Depreciação</small><div id="previewDeprec" style="font-weight:800; font-size:14px; color:var(--navy)">R$ 0,00</div></div>
+          <div><small style="color:var(--muted)">Custo Total</small><div id="previewTotalCost" style="font-weight:800; font-size:14px; color:var(--red)">R$ 0,00</div></div>
+          <div><small style="color:var(--muted)">VALOR FINAL</small><div id="previewFinalPrice" style="font-weight:800; font-size:15px; color:var(--green)">R$ 0,00</div></div>
+       </div>
+
+       <div style="display:flex; justify-content:flex-end;">
+          <button type="submit" class="primary">Salvar na Tabela de Custos</button>
+       </div>
+    </form>
+</div>
+
+<div class="panel" style="padding:0; overflow:hidden;">
+    <div style="padding:14px 18px; border-bottom:1px solid var(--line); font-weight:700; color:var(--navy);">Peças Calculadas Salvas</div>
+    <div class="table-wrap">
+       <table>
+          <thead>
+             <tr>
+                <th>Peça / Modelo</th>
+                <th>Tempo</th>
+                <th>Peso</th>
+                <th>Custo Total</th>
+                <th>Markup</th>
+                <th>Valor Final</th>
+                <th>Lucro Líq.</th>
+                <th>Ações</th>
+             </tr>
+          </thead>
+          <tbody id="costRows"></tbody>
+       </table>
+    </div>
+</div>
+
+</main>
+</div>
+<div id="toast" class="toast hidden"></div>
+<script>
+const STORAGE_KEY = 'primus_costs';
+
+let costItems = [];
+try {
+    costItems = JSON.parse(localStorage.getItem(STORAGE_KEY)) || [];
+    if (!Array.isArray(costItems)) costItems = [];
+} catch(e) {
+    costItems = [];
+}
+
+const $ = id => document.getElementById(id);
+const money = n => new Intl.NumberFormat('pt-BR',{style:'currency',currency:'BRL'}).format(Number(n)||0);
+const escapeHtml = s => String(s ?? '').replace(/[&<>"']/g, c => ({'&':'&amp;','<':'&lt;','>':'&gt;','"':'&quot;',"'":'&#39;'}[c]));
+
+function toast(msg){
+    let t = $('toast'); 
+    if(!t) return; 
+    t.textContent = msg; 
+    t.classList.remove('hidden'); 
+    setTimeout(()=>t.classList.add('hidden'),2600);
+}
+
+function calculateCostValues(){
+    let time = parseFloat($('cTime')?.value) || 0;
+    let weight = parseFloat($('cWeight')?.value) || 0;
+    let filamentPrice = parseFloat($('cFilamentPrice')?.value) || 130;
+    let laborHours = parseFloat($('cLaborHours')?.value) || 0;
+    let supplies = parseFloat($('cSupplies')?.value) || 1.35;
+    let markup = parseFloat($('cMarkup')?.value) || 3.0;
+
+    let custoMat = (weight * filamentPrice) / 1000;
+    let energia = (time / 60) * 0.9 * 0.35;
+    let deprec = (5000 / 5000) * (time / 60);
+    let custoTotal = supplies + custoMat + energia + deprec + (laborHours * 10);
+    let valorFinal = custoTotal * markup;
+    let lucroLiq = valorFinal - custoTotal;
+    return { custoMat, energia, deprec, custoTotal, valorFinal, lucroLiq };
+}
+
+function liveCalc(){
+    let res = calculateCostValues();
+    if($('previewMaterial')) $('previewMaterial').textContent = money(res.custoMat);
+    if($('previewEnergy')) $('previewEnergy').textContent = money(res.energia);
+    if($('previewDeprec')) $('previewDeprec').textContent = money(res.deprec);
+    if($('previewTotalCost')) $('previewTotalCost').textContent = money(res.custoTotal);
+    if($('previewFinalPrice')) $('previewFinalPrice').textContent = money(res.valorFinal);
+}
+
+function saveCostItem(e){
+    e.preventDefault();
+    let id = $('costId')?.value || ('c' + Date.now());
+    let res = calculateCostValues();
+    let item = { 
+        id, 
+        name: $('cName')?.value || 'Peça', 
+        time: $('cTime')?.value || 0, 
+        weight: $('cWeight')?.value || 0, 
+        markup: $('cMarkup')?.value || 3, 
+        ...res 
+    };
+    
+    let idx = costItems.findIndex(x => x.id === id);
+    if(idx >= 0) costItems[idx] = item; else costItems.push(item);
+    
+    localStorage.setItem(STORAGE_KEY, JSON.stringify(costItems));
+    renderCostTable();
+    toast('Custo salvo com sucesso!');
+    $('costForm').reset();
+    liveCalc();
+}
+
+function renderCostTable(){
+    let tbody = $('costRows');
+    if(!tbody) return;
+    tbody.innerHTML = costItems.length ? costItems.map(i => `
+        <tr>
+            <td><strong>${escapeHtml(i.name)}</strong></td>
+            <td>${i.time || 0} min</td>
+            <td>${i.weight || 0} g</td>
+            <td><strong>${money(i.custoTotal)}</strong></td>
+            <td>${i.markup || 3}x</td>
+            <td><strong style="color:var(--green)">${money(i.valorFinal)}</strong></td>
+            <td>${money(i.lucroLiq)}</td>
+            <td><button type="button" class="mini danger" onclick="deleteCostItem('${i.id}')">×</button></td>
+        </tr>
+    `).join('') : `<tr><td colspan="8" class="empty">Nenhuma peça calculada.</td></tr>`;
+}
+
+function deleteCostItem(id){
+    costItems = costItems.filter(x => x.id !== id);
+    localStorage.setItem(STORAGE_KEY, JSON.stringify(costItems));
+    renderCostTable();
+    toast('Item removido.');
+}
+
+document.addEventListener('DOMContentLoaded', () => { 
+    renderCostTable(); 
+    liveCalc(); 
+});
+</script>
+</body>
+</html>

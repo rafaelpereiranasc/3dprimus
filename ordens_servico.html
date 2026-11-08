@@ -1,0 +1,276 @@
+<!doctype html>
+<html lang="pt-BR">
+<head>
+<meta charset="utf-8">
+<meta name="viewport" content="width=device-width,initial-scale=1">
+<title>3D Primus • Lista de Ordens de Serviço</title>
+<link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.4.0/css/all.min.css">
+<style>
+:root {
+  --navy: #10243a;
+  --blue: #1769aa;
+  --orange: #f28b27;
+  --bg: #f3f6fa;
+  --ink: #172b3a;
+  --muted: #6d7c8b;
+  --line: #e3e9ef;
+  --white: #fff;
+  --green: #16845b;
+  --red: #c83c48;
+  --yellow: #b77908;
+}
+* { box-sizing: border-box; }
+body { margin: 0; font-family: Inter, Segoe UI, Arial, sans-serif; background: var(--bg); color: var(--ink); }
+button, input, select, textarea { font: inherit; }
+button { cursor: pointer; border: 0; border-radius: 10px; padding: 10px 14px; font-weight: 650; }
+.app { display: flex; min-height: 100vh; }
+.sidebar { width: 240px; background: var(--navy); color: #fff; padding: 24px 15px; display: flex; flex-direction: column; gap: 7px; z-index: 10; position: relative; }
+.brand { display: flex; align-items: center; gap: 10px; padding: 0 8px 25px; }
+.logo { width: 40px; height: 40px; border-radius: 12px; background: linear-gradient(135deg, #2583cf, var(--orange)); display: grid; place-items: center; font-weight: 900; color: white; }
+.brand strong { display: block; font-size: 15px; letter-spacing: .8px; }
+.brand small { color: #b7c8d7; }
+.nav { color: #c7d4df; background: transparent; text-align: left; padding: 12px; border-radius: 9px; display: flex; align-items: center; gap: 10px; text-decoration: none; border: none; width: 100%; cursor: pointer; font-size: 13.5px; }
+.nav.active, .nav:hover { background: #203d58; color: white; }
+.nav span { display: inline-block; width: 20px; text-align: center; }
+.sidebar .foot { margin-top: auto; color: #a8bdcf; font-size: 12px; line-height: 1.5; padding: 12px; }
+.main { flex: 1; min-width: 0; padding: 28px clamp(16px, 3vw, 36px); }
+.top { display: flex; justify-content: space-between; gap: 16px; align-items: center; margin-bottom: 24px; }
+.eyebrow { color: var(--blue); font-weight: 750; font-size: 11px; letter-spacing: 1.4px; text-transform: uppercase; }
+.top h1 { margin: 5px 0; font-size: clamp(23px, 3vw, 30px); }
+.sub { color: var(--muted); font-size: 14px; }
+.actions { display: flex; gap: 8px; flex-wrap: wrap; }
+.primary { background: var(--blue); color: #fff; text-decoration: none; display: inline-flex; align-items: center; }
+.secondary { background: #e7eff7; color: var(--navy); }
+.danger { background: #fff0f1; color: var(--red); }
+.panel { background: white; border: 1px solid var(--line); border-radius: 15px; padding: 0; overflow: hidden; box-shadow: 0 4px 16px rgba(24,52,76,0.04); margin-bottom: 20px; }
+.toolbar { padding: 14px; display: flex; gap: 10px; flex-wrap: wrap; border-bottom: 1px solid var(--line); align-items: center; }
+input, select, textarea { border: 1px solid #d8e1e9; border-radius: 9px; padding: 10px 11px; background: white; color: var(--ink); min-width: 0; }
+input:focus, select:focus, textarea:focus { outline: 2px solid #b8d9f4; border-color: var(--blue); }
+.toolbar input { flex: 1; min-width: 220px; }
+.table-wrap { overflow: auto; }
+table { width: 100%; border-collapse: collapse; min-width: 900px; }
+th { text-align: left; background: #f8fafc; color: var(--muted); font-size: 11px; text-transform: uppercase; letter-spacing: .6px; padding: 13px 14px; }
+td { padding: 14px; border-top: 1px solid var(--line); font-size: 13px; vertical-align: middle; }
+td strong { display: block; font-size: 13px; }
+td small { color: var(--muted); }
+.pill { display: inline-block; border-radius: 20px; padding: 5px 8px; font-size: 11px; font-weight: 750; background: #edf2f7; color: #516272; }
+.pill.done { background: #e1f5eb; color: var(--green); }
+.pill.progress { background: #e7f2ff; color: var(--blue); }
+.pill.wait { background: #fff4d9; color: var(--yellow); }
+.pill.late { background: #ffeaeb; color: var(--red); }
+.row-actions { display: flex; gap: 6px; flex-wrap: wrap; }
+.mini { padding: 6px 10px; font-size: 12px; background: #edf2f7; color: var(--navy); }
+.empty { padding: 35px; text-align: center; color: var(--muted); }
+.hidden { display: none !important; }
+.modal { position: fixed; inset: 0; background: rgba(16,36,58,0.6); display: grid; place-items: center; padding: 16px; z-index: 1000; }
+.modal-card { background: white; border-radius: 17px; width: min(750px, 100%); max-height: 92vh; overflow: auto; box-shadow: 0 20px 70px rgba(0,0,0,0.15); }
+.modal-title { padding: 20px 20px 0; display: flex; justify-content: space-between; align-items: center; }
+.modal-title h2 { margin: 0; font-size: 20px; color: var(--navy); }
+.close { background: #edf2f7; }
+.form-actions { display: flex; gap: 8px; justify-content: flex-end; padding: 0 18px 18px; }
+.toast { position: fixed; bottom: 20px; right: 20px; background: var(--navy); color: white; padding: 12px 18px; border-radius: 10px; z-index: 2000; box-shadow: 0 8px 25px rgba(0,0,0,0.2); }
+@media print {
+  body * { visibility: hidden; }
+  #osPrintModal, #osPrintModal * { visibility: visible; }
+  #osPrintModal { position: absolute; left: 0; top: 0; width: 100%; height: 100%; background: white; }
+  .no-print { display: none !important; }
+}
+</style>
+</head>
+<body>
+<div class="app">
+<!-- MENU LATERAL COM OS LINKS PADRONIZADOS COM OS_ -->
+<aside class="sidebar">
+ <div class="brand"><div class="logo">3D</div><div><strong>3D PRIMUS</strong><small>Ordens de Serviço</small></div></div>
+ <a href="index.html" class="nav"><span>⌂</span><b>Menu Principal</b></a>
+ <a href="os_lista.html" class="nav active"><span>📄</span><b>Lista de Serviços</b></a>
+ <a href="os_nova.html" class="nav"><span>＋</span><b>Nova Ordem (OS)</b></a>
+ <a href="os_clientes.html" class="nav"><span>👤</span><b>Clientes da OS</b></a>
+ <div class="foot">Módulo OS • Prefixo `os_`<br>3D Primus 2026.</div>
+</aside>
+
+<main class="main">
+<header class="top">
+ <div>
+  <div class="eyebrow">Atendimento e Oficina</div>
+  <h1>Lista de Ordens de Serviço</h1>
+  <div class="sub">Acompanhe todos os serviços por status e gerencie o fluxo de atendimento.</div>
+ </div>
+ <div class="actions">
+  <a href="os_nova.html" class="primary" style="padding:10px 14px; border-radius:10px; font-weight:650;">＋ Nova Ordem de Serviço</a>
+ </div>
+</header>
+
+<div class="panel">
+ <div class="toolbar">
+  <input id="searchOS" placeholder="Buscar por cliente, telefone ou nº da OS..." oninput="renderOSList()">
+  <select id="filterStatusOS" onchange="renderOSList()">
+   <option value="">Todos os Status</option>
+   <option value="Em Andamento">Em Andamento</option>
+   <option value="Aguardando Peça">Aguardando Peça</option>
+   <option value="Não Autorizado">Não Autorizado</option>
+   <option value="Concluída">Concluída</option>
+   <option value="Entregue">Entregue</option>
+   <option value="Cancelada">Cancelada</option>
+  </select>
+ </div>
+ <div class="table-wrap">
+  <table>
+   <thead>
+    <tr>
+     <th>Nº OS</th>
+     <th>Cliente / Contato</th>
+     <th>Equipamento / Serviço</th>
+     <th>Abertura</th>
+     <th>Previsão</th>
+     <th>Status</th>
+     <th>Valor Total</th>
+     <th>Ações</th>
+    </tr>
+   </thead>
+   <tbody id="osRows"></tbody>
+  </table>
+ </div>
+</div>
+
+</main>
+</div>
+
+<!-- MODAL DE IMPRESSÃO / VISUALIZAÇÃO DE OS -->
+<div class="modal hidden" id="osPrintModal">
+ <div class="modal-card" style="width: min(650px, 100%);">
+  <div class="modal-title no-print">
+      <h2 id="printTitle">Ordem de Serviço #0000</h2>
+      <button type="button" class="close" onclick="closePrintModal()">✕</button>
+  </div>
+  <div style="padding: 24px; font-family: sans-serif; color: #172b3a;">
+      <div style="text-align: center; border-bottom: 2px solid #10243a; padding-bottom: 12px; margin-bottom: 15px;">
+          <h1 style="margin: 0; font-size: 22px; color: #10243a;">3D PRIMUS • OFICINA & FABRICAÇÃO</h1>
+          <p style="margin: 4px 0 0; font-size: 12px; color: #6d7c8b;">Comprovante de Ordem de Serviço</p>
+      </div>
+      <div style="display: flex; justify-content: space-between; font-size: 13px; margin-bottom: 15px; background: #f8fafc; padding: 12px; border-radius: 8px;">
+          <div>
+              <strong>Nº da OS:</strong> <span id="pOsNum">-</span><br>
+              <strong>Data Abertura:</strong> <span id="pOsDate">-</span>
+          </div>
+          <div style="text-align: right;">
+              <strong>Previsão:</strong> <span id="pOsDeadline">-</span><br>
+              <strong>Status:</strong> <span id="pOsStatus">-</span>
+          </div>
+      </div>
+      <div style="margin-bottom: 15px; font-size: 13px;">
+          <div style="font-weight: bold; color: #10243a; border-bottom: 1px solid #e3e9ef; padding-bottom: 4px; margin-bottom: 6px;">DADOS DO CLIENTE</div>
+          <strong>Nome:</strong> <span id="pClient">-</span><br>
+          <strong>Telefone:</strong> <span id="pPhone">-</span>
+      </div>
+      <div style="margin-bottom: 15px; font-size: 13px;">
+          <div style="font-weight: bold; color: #10243a; border-bottom: 1px solid #e3e9ef; padding-bottom: 4px; margin-bottom: 6px;">EQUIPAMENTO / PROJETO</div>
+          <strong>Item / Modelo:</strong> <span id="pItem">-</span><br>
+          <strong>Responsável:</strong> <span id="pTech">-</span><br>
+          <strong>Relato / Descrição:</strong>
+          <div id="pDesc" style="background: #fff; border: 1px solid #e3e9ef; padding: 8px; border-radius: 6px; margin-top: 4px; font-size: 12.5px;">-</div>
+      </div>
+      <div style="margin-bottom: 20px; font-size: 13px;">
+          <div style="font-weight: bold; color: #10243a; border-bottom: 1px solid #e3e9ef; padding-bottom: 4px; margin-bottom: 6px;">VALORES</div>
+          <div style="display: flex; justify-content: space-between; padding: 4px 0;"><span>Valor Total:</span> <strong id="pTotal">R$ 0,00</strong></div>
+          <div style="display: flex; justify-content: space-between; padding: 4px 0; color: #16845b;"><span>Adiantado / Entrada:</span> <strong id="pPaid">R$ 0,00</strong></div>
+          <div style="display: flex; justify-content: space-between; padding: 4px 0; color: #c83c48; font-size: 14px; border-top: 1px dashed #ccc; margin-top: 4px; padding-top: 6px;"><span>Saldo Restante:</span> <strong id="pRest">R$ 0,00</strong></div>
+      </div>
+  </div>
+  <div class="form-actions no-print" style="padding: 0 20px 20px;">
+   <button type="button" class="secondary" onclick="closePrintModal()">Fechar</button>
+   <button type="button" class="primary" onclick="window.print()"><i class="fa-solid fa-print"></i> Imprimir OS</button>
+  </div>
+ </div>
+</div>
+
+<div id="toast" class="toast hidden"></div>
+
+<script>
+let osList = JSON.parse(localStorage.getItem('primus_os_list')) || [];
+
+const $ = id => document.getElementById(id);
+const money = n => new Intl.NumberFormat('pt-BR',{style:'currency',currency:'BRL'}).format(Number(n)||0);
+
+function toast(msg){
+    let t = $('toast');
+    if(!t) return;
+    t.textContent = msg;
+    t.classList.remove('hidden');
+    setTimeout(() => t.classList.add('hidden'), 2600);
+}
+
+function escapeHtml(s){return String(s??'').replace(/[&<>"']/g,c=>({'&':'&amp;','<':'&lt;','>':'&gt;','"':'&quot;',"'":'&#39;'}[c]))}
+
+function renderOSList(){
+    let q = ($('searchOS')?.value || '').toLowerCase();
+    let statusFilter = $('filterStatusOS')?.value || '';
+
+    let list = osList.filter(o => {
+        if(statusFilter && o.status !== statusFilter) return false;
+        let queryStr = [o.osNumber, o.client, o.phone, o.item, o.description].join(' ').toLowerCase();
+        return queryStr.includes(q);
+    });
+
+    let tbody = $('osRows');
+    if(!tbody) return;
+
+    tbody.innerHTML = list.length ? list.map(o => `
+        <tr>
+            <td><strong>#${escapeHtml(o.osNumber)}</strong></td>
+            <td><strong>${escapeHtml(o.client)}</strong><small>${escapeHtml(o.phone)}</small></td>
+            <td>${escapeHtml(o.item)}<small>${escapeHtml(o.tech)}</small></td>
+            <td>${o.date ? new Date(o.date+'T12:00:00').toLocaleDateString('pt-BR') : '—'}</td>
+            <td>${o.deadline ? new Date(o.deadline+'T12:00:00').toLocaleDateString('pt-BR') : '—'}</td>
+            <td><span class="pill ${o.status==='Concluída'||o.status==='Entregue'?'done':o.status==='Em Andamento'?'progress':o.status==='Aguardando Peça'?'wait':'late'}">${escapeHtml(o.status)}</span></td>
+            <td><strong style="color:var(--navy)">${money(o.total)}</strong></td>
+            <td>
+                <div class="row-actions">
+                    <button type="button" class="mini primary" onclick="openPrintModal('${o.id}')"><i class="fa-solid fa-print"></i> OS</button>
+                    <button type="button" class="mini danger" onclick="deleteOS('${o.id}')">×</button>
+                </div>
+            </td>
+        </tr>
+    `).join('') : `<tr><td colspan="8" class="empty">Nenhuma Ordem de Serviço encontrada com este filtro.</td></tr>`;
+}
+
+function deleteOS(id){
+    if(confirm('Tem certeza que deseja excluir esta Ordem de Serviço?')){
+        osList = osList.filter(x => x.id !== id);
+        localStorage.setItem('primus_os_list', JSON.stringify(osList));
+        renderOSList();
+        toast('OS excluída.');
+    }
+}
+
+function openPrintModal(id){
+    let o = osList.find(x => x.id === id);
+    if(!o) return;
+
+    if($('printTitle')) $('printTitle').textContent = `Ordem de Serviço #${o.osNumber}`;
+    if($('pOsNum')) $('pOsNum').textContent = '#' + o.osNumber;
+    if($('pOsDate')) $('pOsDate').textContent = o.date ? new Date(o.date+'T12:00:00').toLocaleDateString('pt-BR') : '-';
+    if($('pOsDeadline')) $('pOsDeadline').textContent = o.deadline ? new Date(o.deadline+'T12:00:00').toLocaleDateString('pt-BR') : '-';
+    if($('pOsStatus')) $('pOsStatus').textContent = o.status;
+    if($('pClient')) $('pClient').textContent = o.client;
+    if($('pPhone')) $('pPhone').textContent = o.phone;
+    if($('pItem')) $('pItem').textContent = o.item;
+    if($('pTech')) $('pTech').textContent = o.tech;
+    if($('pDesc')) $('pDesc').textContent = o.description || 'Nenhuma descrição informada.';
+    if($('pTotal')) $('pTotal').textContent = money(o.total);
+    if($('pPaid')) $('pPaid').textContent = money(o.paid);
+    if($('pRest')) $('pRest').textContent = money((Number(o.total)||0) - (Number(o.paid)||0));
+
+    $('osPrintModal').classList.remove('hidden');
+}
+
+function closePrintModal(){
+    $('osPrintModal').classList.add('hidden');
+}
+
+document.addEventListener('DOMContentLoaded', () => {
+    renderOSList();
+});
+</script>
+</body>
+</html>

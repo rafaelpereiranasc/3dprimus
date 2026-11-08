@@ -1,0 +1,279 @@
+<!doctype html>
+<html lang="pt-BR">
+<head>
+<meta charset="utf-8">
+<meta name="viewport" content="width=device-width,initial-scale=1">
+<title>3D Primus • Lista de Ordens de Serviço</title>
+<link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.4.0/css/all.min.css">
+<style>
+:root {
+  --navy: #10243a;
+  --blue: #1769aa;
+  --orange: #f28b27;
+  --bg: #f3f6fa;
+  --ink: #172b3a;
+  --muted: #6d7c8b;
+  --line: #e3e9ef;
+  --white: #fff;
+  --green: #16845b;
+  --red: #c83c48;
+  --yellow: #b77908;
+}
+* { box-sizing: border-box; }
+body { margin: 0; font-family: Inter, Segoe UI, Arial, sans-serif; background: var(--bg); color: var(--ink); }
+button, input, select, textarea { font: inherit; }
+button { cursor: pointer; border: 0; border-radius: 10px; padding: 10px 14px; font-weight: 650; }
+.app { display: flex; min-height: 100vh; }
+.sidebar { width: 240px; background: var(--navy); color: #fff; padding: 24px 15px; display: flex; flex-direction: column; gap: 7px; z-index: 10; position: relative; }
+.brand { display: flex; align-items: center; gap: 10px; padding: 0 8px 25px; }
+.logo { width: 40px; height: 40px; border-radius: 12px; background: linear-gradient(135deg, #2583cf, var(--orange)); display: grid; place-items: center; font-weight: 900; color: white; }
+.brand strong { display: block; font-size: 15px; letter-spacing: .8px; }
+.brand small { color: #b7c8d7; }
+.nav { color: #c7d4df; background: transparent; text-align: left; padding: 12px; border-radius: 9px; display: flex; align-items: center; gap: 10px; text-decoration: none; border: none; width: 100%; cursor: pointer; font-size: 13.5px; }
+.nav.active, .nav:hover { background: #203d58; color: white; }
+.nav span { display: inline-block; width: 20px; text-align: center; }
+.sidebar .foot { margin-top: auto; color: #a8bdcf; font-size: 12px; line-height: 1.5; padding: 12px; }
+.main { flex: 1; min-width: 0; padding: 28px clamp(16px, 3vw, 36px); }
+.top { display: flex; justify-content: space-between; gap: 16px; align-items: center; margin-bottom: 24px; }
+.eyebrow { color: var(--blue); font-weight: 750; font-size: 11px; letter-spacing: 1.4px; text-transform: uppercase; }
+.top h1 { margin: 5px 0; font-size: clamp(23px, 3vw, 30px); }
+.sub { color: var(--muted); font-size: 14px; }
+.actions { display: flex; gap: 8px; flex-wrap: wrap; }
+.primary { background: var(--blue); color: #fff; text-decoration: none; display: inline-flex; align-items: center; }
+.secondary { background: #e7eff7; color: var(--navy); }
+.danger { background: #fff0f1; color: var(--red); }
+.panel { background: white; border: 1px solid var(--line); border-radius: 15px; padding: 0; overflow: hidden; box-shadow: 0 4px 16px rgba(24,52,76,0.04); margin-bottom: 20px; }
+.toolbar { padding: 14px; display: flex; gap: 10px; flex-wrap: wrap; border-bottom: 1px solid var(--line); align-items: center; }
+input, select, textarea { border: 1px solid #d8e1e9; border-radius: 9px; padding: 10px 11px; background: white; color: var(--ink); min-width: 0; }
+input:focus, select:focus, textarea:focus { outline: 2px solid #b8d9f4; border-color: var(--blue); }
+.toolbar input { flex: 1; min-width: 220px; }
+.table-wrap { overflow: auto; }
+table { width: 100%; border-collapse: collapse; min-width: 900px; }
+th { text-align: left; background: #f8fafc; color: var(--muted); font-size: 11px; text-transform: uppercase; letter-spacing: .6px; padding: 13px 14px; }
+td { padding: 14px; border-top: 1px solid var(--line); font-size: 13px; vertical-align: middle; }
+td strong { display: block; font-size: 13px; }
+td small { color: var(--muted); max-width: 250px; white-space: nowrap; overflow: hidden; text-overflow: ellipsis; display: block; }
+.pill { display: inline-block; border-radius: 20px; padding: 5px 8px; font-size: 11.5px; font-weight: 750; background: #edf2f7; color: #516272; }
+.pill.done { background: #e1f5eb; color: var(--green); }
+.pill.progress { background: #e7f2ff; color: var(--blue); }
+.pill.wait { background: #fff4d9; color: var(--yellow); }
+.pill.late { background: #ffeaeb; color: var(--red); }
+.deadline-alert { font-weight: 700; padding: 4px 8px; border-radius: 6px; display: inline-block; font-size: 12px; }
+.deadline-orange { background: #fff4d9; color: #b77908; border: 1px solid #feebc8; }
+.deadline-red { background: #fff0f1; color: var(--red); border: 1px solid #fed7d7; }
+.row-actions { display: flex; gap: 6px; flex-wrap: wrap; }
+.mini { padding: 6px 10px; font-size: 12px; background: #edf2f7; color: var(--navy); text-decoration: none; display: inline-flex; align-items: center; gap: 4px; border-radius: 8px;}
+.empty { padding: 35px; text-align: center; color: var(--muted); }
+.modal { position: fixed; inset: 0; background: rgba(16,36,58,0.6); display: grid; place-items: center; padding: 16px; z-index: 1000; }
+.modal-card { background: white; border-radius: 17px; width: min(750px, 100%); max-height: 92vh; overflow: auto; box-shadow: 0 20px 70px rgba(0,0,0,0.15); }
+.modal-title { padding: 20px 20px 0; display: flex; justify-content: space-between; align-items: center; }
+.modal-title h2 { margin: 0; font-size: 20px; color: var(--navy); }
+.close { background: #edf2f7; }
+.toast { position: fixed; bottom: 20px; right: 20px; background: var(--navy); color: white; padding: 12px 18px; border-radius: 10px; z-index: 2000; box-shadow: 0 8px 25px rgba(0,0,0,0.2); }
+.hidden { display: none !important; }
+.print-container { display: none; }
+@media print {
+  body * { visibility: hidden; }
+  .print-container, .print-container * { visibility: visible; }
+  .print-container { position: absolute; left: 0; top: 0; width: 100%; background: white; display: block; font-family: sans-serif; color: #000; }
+  .no-print { display: none !important; }
+  @page { size: A4 portrait; margin: 10mm; }
+}
+</style>
+</head>
+<body>
+<div class="app">
+<aside class="sidebar no-print">
+ <div class="brand"><div class="logo">3D</div><div><strong>3D PRIMUS</strong><small>Ordens de Serviço</small></div></div>
+ <a href="index.html" class="nav"><span>⌂</span><b>Menu Principal</b></a>
+ <a href="os_lista.html" class="nav active"><span>📄</span><b>Lista de Serviços</b></a>
+ <a href="os_nova.html" class="nav"><span>＋</span><b>Nova Ordem (OS)</b></a>
+ <div class="foot">Módulo OS • 3D Primus 2026.</div>
+</aside>
+
+<main class="main">
+<header class="top no-print">
+ <div>
+  <div class="eyebrow">Atendimento e Oficina (Nuvem)</div>
+  <h1>Lista de Ordens de Serviço</h1>
+  <div class="sub">Acompanhe todos os serviços sincronizados com o banco de dados.</div>
+ </div>
+ <div class="actions">
+  <a href="os_nova.html" class="primary" style="padding:10px 14px; border-radius:10px; font-weight:650;">＋ Nova Ordem de Serviço</a>
+ </div>
+</header>
+
+<div class="panel no-print">
+ <div class="toolbar">
+  <input id="searchOS" placeholder="Buscar por cliente, telefone ou nº da OS..." oninput="renderOSList()">
+  <select id="filterStatusOS" onchange="renderOSList()">
+   <option value="">Todos os Status</option>
+   <option value="Em Andamento">Em Andamento</option>
+   <option value="Aguardando Peça">Aguardando Peça</option>
+   <option value="Concluída">Concluída</option>
+   <option value="Entregue">Entregue</option>
+   <option value="Não Autorizado">Não Autorizado</option>
+   <option value="Cancelada">Cancelada</option>
+  </select>
+ </div>
+ <div class="table-wrap">
+  <table>
+   <thead>
+    <tr>
+     <th>Nº OS</th>
+     <th>Cliente / Contato</th>
+     <th>Equipamento / Defeito</th>
+     <th>Abertura</th>
+     <th>Previsão</th>
+     <th>Status</th>
+     <th>Valor Total</th>
+     <th>Ações</th>
+    </tr>
+   </thead>
+   <tbody id="osRows"><tr><td colspan="8" class="empty">Carregando ordens de serviço da nuvem...</td></tr></tbody>
+  </table>
+ </div>
+</div>
+</main>
+</div>
+
+<div class="modal hidden" id="osChoiceModal">
+ <div class="modal-card" style="width: min(420px, 100%);">
+  <div class="modal-title">
+      <h2>Escolher Tipo de Impressão</h2>
+      <button type="button" class="close" onclick="closeChoiceModal()">✕</button>
+  </div>
+  <div style="padding: 20px; display: flex; flex-direction: column; gap: 12px;">
+      <p style="margin:0; font-size:13.5px; color:var(--muted);">Selecione o formato desejado para a Ordem de Serviço #<span id="choiceOsNum">0000</span>:</p>
+      <button type="button" class="primary" style="padding: 14px; text-align: left; display:flex; align-items:center; gap:12px;" onclick="printSelectedType('entrada')">
+          <i class="fa-solid fa-copy" style="font-size:20px;"></i>
+          <div><strong>1. Via de Entrada (2 Vias na Folha)</strong><div style="font-size:11.5px; font-weight:normal; opacity:0.9;">Via da Loja + Via do Cliente.</div></div>
+      </button>
+      <button type="button" class="secondary" style="padding: 14px; text-align: left; display:flex; align-items:center; gap:12px; background:#e7f2ff; color:var(--blue);" onclick="printSelectedType('saida')">
+          <i class="fa-solid fa-file-shield" style="font-size:20px;"></i>
+          <div><strong>2. Via de Saída / Garantia (1 Via)</strong><div style="font-size:11.5px; font-weight:normal; opacity:0.9;">Comprovante com Termo de Garantia.</div></div>
+      </button>
+  </div>
+ </div>
+</div>
+
+<div id="printArea" class="print-container"></div>
+<div id="toast" class="toast hidden"></div>
+
+<script>
+let osCache = [];
+
+async function loadOSList() {
+    try {
+        let res = await fetch('/api/os');
+        osCache = await res.json();
+        if(!Array.isArray(osCache)) osCache = [];
+    } catch(e) {
+        osCache = [];
+    }
+    renderOSList();
+}
+
+const $ = id => document.getElementById(id);
+const money = n => new Intl.NumberFormat('pt-BR',{style:'currency',currency:'BRL'}).format(Number(n)||0);
+let activePrintId = null;
+
+function toast(msg){
+    let t = $('toast');
+    if(!t) return;
+    t.textContent = msg;
+    t.classList.remove('hidden');
+    setTimeout(() => t.classList.add('hidden'), 2600);
+}
+
+function escapeHtml(s){return String(s??'').replace(/[&<>"']/g,c=>({'&':'&amp;','<':'&lt;','>':'&gt;','"':'&quot;',"'":'&#39;'}[c]))}
+
+function formatDeadline(deadlineStr, statusProd) {
+    if (!deadlineStr) return '—';
+    if (statusProd === 'Concluída' || statusProd === 'Entregue' || statusProd === 'Cancelada') {
+        return new Date(deadlineStr + 'T12:00:00').toLocaleDateString('pt-BR');
+    }
+    let hoje = new Date();
+    hoje.setHours(0,0,0,0);
+    let prazo = new Date(deadlineStr + 'T12:00:00');
+    prazo.setHours(0,0,0,0);
+    let diffDays = Math.round((prazo - hoje) / (1000 * 60 * 60 * 24));
+    let dataFormatada = prazo.toLocaleDateString('pt-BR');
+
+    if (diffDays < 0) {
+        return `<span class="deadline-alert deadline-red">${Math.abs(diffDays)}d atrasado</span><small style="color:var(--red);">(${dataFormatada})</small>`;
+    } else if (diffDays === 0) {
+        return `<span class="deadline-alert deadline-orange">Hoje</span><small>(${dataFormatada})</small>`;
+    } else {
+        return dataFormatada;
+    }
+}
+
+function renderOSList(){
+    let q = ($('searchOS')?.value || '').toLowerCase();
+    let statusFilter = $('filterStatusOS')?.value || '';
+
+    let list = osCache.filter(o => {
+        if(statusFilter && o.status !== statusFilter) return false;
+        let queryStr = [o.osNumber, o.client, o.phone, o.item, o.reportedDefect].join(' ').toLowerCase();
+        return queryStr.includes(q);
+    });
+
+    let tbody = $('osRows');
+    if(!tbody) return;
+
+    tbody.innerHTML = list.length ? list.map(o => {
+        let equipamentoLabel = o.item || 'Equipamento';
+        let defeitoLabel = o.reportedDefect || 'Sem defeito relatado';
+
+        return `
+        <tr>
+            <td><strong>#${escapeHtml(o.osNumber)}</strong></td>
+            <td><strong>${escapeHtml(o.client)}</strong><small>${escapeHtml(o.phone)}</small></td>
+            <td><strong>${escapeHtml(equipamentoLabel)}</strong><small title="${escapeHtml(defeitoLabel)}">Defeito: ${escapeHtml(defeitoLabel)}</small></td>
+            <td>${o.date ? new Date(o.date+'T12:00:00').toLocaleDateString('pt-BR') : '—'}</td>
+            <td>${formatDeadline(o.deadline, o.status)}</td>
+            <td><span class="pill ${o.status==='Concluída'||o.status==='Entregue'?'done':o.status==='Em Andamento'?'progress':o.status==='Aguardando Peça'?'wait':'late'}">${escapeHtml(o.status)}</span></td>
+            <td><strong style="color:var(--navy)">${money(o.total)}</strong></td>
+            <td>
+                <div class="row-actions">
+                    <button type="button" class="mini primary" onclick="openChoiceModal('${o.id}')"><i class="fa-solid fa-print"></i> Imprimir</button>
+                    <a href="os_nova.html?id=${o.id}" class="mini" style="background:#e7eff7; color:var(--navy);">Editar</a>
+                    <button type="button" class="mini danger" onclick="deleteOS('${o.id}')">×</button>
+                </div>
+            </td>
+        </tr>
+    `;}).join('') : `<tr><td colspan="8" class="empty">Nenhuma Ordem de Serviço encontrada.</td></tr>`;
+}
+
+async function deleteOS(id){
+    if(confirm('Tem certeza que deseja excluir esta Ordem de Serviço da nuvem?')){
+        await fetch(`/api/os/${id}`, { method: 'DELETE' });
+        loadOSList();
+        toast('OS excluída.');
+    }
+}
+
+function openChoiceModal(id){
+    activePrintId = id;
+    let o = osCache.find(x => x.id === id);
+    if(!o) return;
+    if($('choiceOsNum')) $('choiceOsNum').textContent = o.osNumber;
+    $('osChoiceModal').classList.remove('hidden');
+}
+
+function closeChoiceModal(){
+    $('osChoiceModal').classList.add('hidden');
+}
+
+function printSelectedType(type){
+    closeChoiceModal();
+    let o = osCache.find(x => x.id === activePrintId);
+    if(!o) return;
+    window.print();
+}
+
+document.addEventListener('DOMContentLoaded', loadOSList);
+</script>
+</body>
+</html>

@@ -1,0 +1,465 @@
+<!doctype html>
+<html lang="pt-BR">
+<head>
+<meta charset="utf-8">
+<meta name="viewport" content="width=device-width,initial-scale=1">
+<title>3D Primus • Controle de Impressoras</title>
+<link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.4.0/css/all.min.css">
+<style>
+:root {
+  --navy: #10243a;
+  --blue: #1769aa;
+  --orange: #f28b27;
+  --bg: #f3f6fa;
+  --ink: #172b3a;
+  --muted: #6d7c8b;
+  --line: #e3e9ef;
+  --white: #fff;
+  --green: #16845b;
+  --red: #c83c48;
+  --yellow: #b77908;
+}
+* { box-sizing: border-box; }
+body { margin: 0; font-family: Inter, Segoe UI, Arial, sans-serif; background: var(--bg); color: var(--ink); }
+button, input, select, textarea { font: inherit; }
+button { cursor: pointer; border: 0; border-radius: 10px; padding: 10px 14px; font-weight: 650; }
+.app { display: flex; min-height: 100vh; }
+.sidebar { width: 240px; background: var(--navy); color: #fff; padding: 24px 15px; display: flex; flex-direction: column; gap: 7px; z-index: 10; position: relative; }
+.brand { display: flex; align-items: center; gap: 10px; padding: 0 8px 25px; }
+.logo { width: 40px; height: 40px; border-radius: 12px; background: linear-gradient(135deg, #2583cf, var(--orange)); display: grid; place-items: center; font-weight: 900; color: white; }
+.brand strong { display: block; font-size: 15px; letter-spacing: .8px; }
+.brand small { color: #b7c8d7; }
+.nav { color: #c7d4df; background: transparent; text-align: left; padding: 12px; border-radius: 9px; display: flex; align-items: center; gap: 10px; text-decoration: none; border: none; width: 100%; cursor: pointer; font-size: 13.5px; }
+.nav.active, .nav:hover { background: #203d58; color: white; }
+.nav span { display: inline-block; width: 20px; text-align: center; }
+.sidebar .foot { margin-top: auto; color: #a8bdcf; font-size: 12px; line-height: 1.5; padding: 12px; }
+.main { flex: 1; min-width: 0; padding: 28px clamp(16px, 3vw, 36px); }
+.top { display: flex; justify-content: space-between; gap: 16px; align-items: center; margin-bottom: 24px; }
+.eyebrow { color: var(--orange); font-weight: 750; font-size: 11px; letter-spacing: 1.4px; text-transform: uppercase; }
+.top h1 { margin: 5px 0; font-size: clamp(23px, 3vw, 30px); }
+.sub { color: var(--muted); font-size: 14px; }
+.actions { display: flex; gap: 8px; flex-wrap: wrap; }
+.primary { background: var(--blue); color: #fff; }
+.secondary { background: #e7eff7; color: var(--navy); }
+.danger { background: #fff0f1; color: var(--red); }
+.panel { background: white; border: 1px solid var(--line); border-radius: 15px; padding: 0; overflow: hidden; box-shadow: 0 4px 16px rgba(24,52,76,0.04); margin-bottom: 20px; }
+.toolbar { padding: 14px; display: flex; gap: 10px; flex-wrap: wrap; border-bottom: 1px solid var(--line); align-items: center; }
+input, select, textarea { border: 1px solid #d8e1e9; border-radius: 9px; padding: 10px 11px; background: white; color: var(--ink); min-width: 0; }
+input:focus, select:focus, textarea:focus { outline: 2px solid #b8d9f4; border-color: var(--blue); }
+.toolbar input[type="text"] { flex: 1; min-width: 200px; }
+.table-wrap { overflow: auto; }
+table { width: 100%; border-collapse: collapse; min-width: 1000px; }
+th { text-align: left; background: #f8fafc; color: var(--muted); font-size: 11px; text-transform: uppercase; letter-spacing: .6px; padding: 13px 14px; }
+td { padding: 14px; border-top: 1px solid var(--line); font-size: 13px; vertical-align: middle; }
+td strong { display: block; font-size: 13px; }
+td small { color: var(--muted); }
+.pill { display: inline-block; border-radius: 20px; padding: 4px 10px; font-size: 11px; font-weight: 750; }
+.pill.active { background: #e1f5eb; color: var(--green); }
+.pill.warning { background: #fff4d9; color: var(--yellow); }
+.pill.expired { background: #ffeaeb; color: var(--red); }
+.row-actions { display: flex; gap: 5px; flex-wrap: wrap; }
+.mini { padding: 6px 9px; font-size: 11.5px; background: #edf2f7; color: var(--navy); display: inline-flex; align-items: center; gap: 4px; text-decoration: none; border-radius: 8px; }
+.empty { padding: 35px; text-align: center; color: var(--muted); }
+.hidden { display: none !important; }
+.form-grid { display: grid; grid-template-columns: repeat(2, minmax(0, 1fr)); gap: 14px; padding: 18px; }
+.field { display: flex; flex-direction: column; gap: 6px; font-size: 12px; font-weight: 700; color: #526373; }
+.field.full { grid-column: 1/-1; }
+.field input, .field select, .field textarea { width: 100%; font-weight: 400; }
+.form-actions { display: flex; gap: 8px; justify-content: flex-end; padding: 0 18px 18px; }
+.modal { position: fixed; inset: 0; background: rgba(16,36,58,0.6); display: grid; place-items: center; padding: 16px; z-index: 1000; }
+.modal-card { background: white; border-radius: 17px; width: min(760px, 100%); max-height: 92vh; overflow: auto; box-shadow: 0 20px 70px rgba(0,0,0,0.15); }
+.modal-title { padding: 20px 20px 0; display: flex; justify-content: space-between; align-items: center; }
+.modal-title h2 { margin: 0; font-size: 20px; color: var(--navy); }
+.close { background: #edf2f7; }
+.toast { position: fixed; bottom: 20px; right: 20px; background: var(--navy); color: white; padding: 12px 18px; border-radius: 10px; z-index: 2000; box-shadow: 0 8px 25px rgba(0,0,0,0.2); }
+</style>
+</head>
+<body>
+<div class="app">
+<aside class="sidebar no-print">
+ <div class="brand"><div class="logo">3D</div><div><strong>3D PRIMUS</strong><small>Painel Principal</small></div></div>
+ <a href="index.html" class="nav"><span>⌂</span><b>Menu Principal</b></a>
+ <a href="ordens_servico.html" class="nav"><span>📋</span><b>Ordens de Serviço</b></a>
+ <a href="producao_2.html" class="nav"><span>📦</span><b>Produção</b></a>
+ <a href="controle.html" class="nav active"><span>🖨️</span><b>Controle Impressoras</b></a>
+ <div class="foot">Controle de Máquinas<br>3D Primus 2026.</div>
+</aside>
+
+<main class="main print-area">
+<header class="top">
+ <div>
+  <div class="eyebrow">Rastreabilidade & Pós-Venda (Nuvem)</div>
+  <h1>Controle de Impressoras Vendidas</h1>
+  <div class="sub">Gerencie garantia de 1 ano, alertas de revisão preventiva e histórico sincronizado.</div>
+ </div>
+ <div class="actions no-print">
+  <button type="button" class="secondary" onclick="window.print()"><i class="fa-solid fa-print"></i> Imprimir Relatório</button>
+  <button type="button" class="primary" onclick="openPrinterModal()">＋ Cadastrar Impressora</button>
+ </div>
+</header>
+
+<div class="panel">
+ <div class="toolbar no-print">
+  <input id="searchModel" type="text" placeholder="Filtrar por modelo..." oninput="renderPrinters()">
+  <input id="searchSerial" type="text" placeholder="Filtrar por número de série (S/N)..." oninput="renderPrinters()">
+  <select id="filterWarranty" onchange="renderPrinters()" style="background:white;">
+   <option value="">Todas as Garantias</option>
+   <option value="active">Garantia Ativa</option>
+   <option value="warning">Vencendo em Breve (30 dias)</option>
+   <option value="expired">Garantia Vencida</option>
+  </select>
+ </div>
+ <div class="table-wrap">
+  <table>
+   <thead>
+    <tr>
+     <th>Modelo / Nº de Série</th>
+     <th>Cliente / Fornecedor</th>
+     <th>Garantia (1 Ano)</th>
+     <th>Próx. Revisão</th>
+     <th>Horas Atuais</th>
+     <th>Observações</th>
+     <th class="no-print">Ações</th>
+    </tr>
+   </thead>
+   <tbody id="printerRows"><tr><td colspan="7" class="empty">Carregando dados da nuvem...</td></tr></tbody>
+  </table>
+ </div>
+</div>
+</main>
+</div>
+
+<!-- MODAL DE CADASTRO / EDIÇÃO -->
+<div class="modal hidden" id="printerModal">
+ <div class="modal-card">
+  <div class="modal-title"><h2 id="modalTitle">Cadastrar Impressora</h2><button type="button" class="close" onclick="closePrinterModal()">✕</button></div>
+  <form id="printerForm" onsubmit="savePrinter(event)">
+   <input type="hidden" id="printerId">
+   <div class="form-grid">
+    <label class="field">Modelo da Impressora *<input id="pModel" required placeholder="Ex: Ender 3 Pro / Bambu Lab A1"></label>
+    <label class="field">Número de Série (S/N) *<input id="pSerial" required placeholder="Ex: SN987654321"></label>
+    <label class="field">Fornecedor *<input id="pSupplier" required placeholder="Ex: Fugioka / Distribuidor"></label>
+    <label class="field">Cliente Comprador *<input id="pClient" required placeholder="Nome do cliente"></label>
+    <label class="field">Data da Compra / Venda *<input id="pDate" type="date" required></label>
+    <label class="field">Horas Iniciais (Odômetro)<input id="pInitialHours" type="number" min="0" value="0" placeholder="0"></label>
+    <label class="field full">Observações / Upgrades *<textarea id="pNotes" rows="2" placeholder="Insira detalhes como garantia estendida, peças trocadas..."></textarea></label>
+   </div>
+   <div class="form-actions">
+    <button type="button" class="secondary" onclick="closePrinterModal()">Cancelar</button>
+    <button type="submit" class="primary">Salvar na Nuvem</button>
+   </div>
+  </form>
+ </div>
+</div>
+
+<!-- MODAL DE HISTÓRICO E HORAS DE USO -->
+<div class="modal hidden" id="historyModal">
+ <div class="modal-card" style="width: min(800px, 100%);">
+  <div class="modal-title">
+   <h2 id="historyModalTitle">Histórico e Manutenções</h2>
+   <button type="button" class="close" onclick="closeHistoryModal()">✕</button>
+  </div>
+  <div style="padding: 20px;">
+   <div style="background: #f8fafc; padding: 12px; border-radius: 10px; margin-bottom: 16px; border: 1px solid #e3e9ef;">
+    <strong id="histInfoModel" style="color:var(--navy); font-size:14px;">Modelo</strong>
+    <div id="histInfoClient" style="font-size:12.5px; color:var(--muted); margin-top:2px;">Cliente</div>
+   </div>
+
+   <h3 style="font-size: 13px; color: var(--navy); margin-bottom: 8px; text-transform: uppercase;">Adicionar Nova Intervenção / Revisão</h3>
+   <form id="historyForm" onsubmit="addHistoryEntry(event)" style="display: grid; grid-template-columns: 1fr 1fr 2fr auto; gap: 10px; align-items: flex-end; margin-bottom: 24px;">
+    <input type="hidden" id="histPrinterId">
+    <label class="field">Data<input id="histDate" type="date" required></label>
+    <label class="field">Horas Atuais (Odômetro)<input id="histHours" type="number" min="0" required placeholder="Ex: 250"></label>
+    <label class="field">O que foi feito / Defeito<input id="histDesc" required placeholder="Ex: Bico entupido, troca de PTFE..."></label>
+    <button type="submit" class="primary" style="height: 41px;">Adicionar</button>
+   </form>
+
+   <h3 style="font-size: 13px; color: var(--navy); margin-bottom: 8px; text-transform: uppercase;">Linha do Tempo de Atendimentos</h3>
+   <div class="table-wrap" style="max-height: 250px; border: 1px solid var(--line); border-radius: 9px;">
+    <table>
+     <thead>
+      <tr>
+       <th>Data</th>
+       <th>Horas (Odômetro)</th>
+       <th>Descrição / Intervenção</th>
+      </tr>
+     </thead>
+     <tbody id="historyRows">
+      <tr><td colspan="3" class="empty">Nenhum histórico registrado.</td></tr>
+     </tbody>
+    </table>
+   </div>
+  </div>
+ </div>
+</div>
+
+<div id="toast" class="toast hidden"></div>
+
+<script>
+let printersCache = [];
+
+async function loadPrinters() {
+    try {
+        let res = await fetch('/api/printers');
+        printersCache = await res.json();
+        if (!Array.isArray(printersCache)) printersCache = [];
+    } catch(e) {
+        printersCache = [];
+    }
+    renderPrinters();
+}
+
+const $ = id => document.getElementById(id);
+const today = () => new Date().toISOString().slice(0,10);
+
+function toast(msg){
+    let t = $('toast');
+    if(!t) return;
+    t.textContent = msg;
+    t.classList.remove('hidden');
+    setTimeout(() => t.classList.add('hidden'), 2600);
+}
+
+function escapeHtml(s){return String(s??'').replace(/[&<>"']/g,c=>({'&':'&amp;','<':'&lt;','>':'&gt;','"':'&quot;',"'":'&#39;'}[c]))}
+
+function getWarrantyStatus(saleDateStr) {
+    if(!saleDateStr) return { status: 'active', text: '—' };
+    let venda = new Date(saleDateStr + 'T00:00:00');
+    let vencimento = new Date(venda);
+    vencimento.setFullYear(vencimento.getFullYear() + 1);
+
+    let hoje = new Date();
+    hoje.setHours(0,0,0,0);
+
+    let diffTime = vencimento - hoje;
+    let diffDays = Math.ceil(diffTime / (1000 * 60 * 60 * 24));
+    let dataFmt = vencimento.toLocaleDateString('pt-BR');
+
+    if (diffDays < 0) {
+        return { status: 'expired', text: `Vencida em ${dataFmt}` };
+    } else if (diffDays <= 30) {
+        return { status: 'warning', text: `Vence em ${diffDays} dias (${dataFmt})` };
+    } else {
+        let meses = Math.floor(diffDays / 30);
+        return { status: 'active', text: `Ativa (~${meses}m restantes - ${dataFmt})` };
+    }
+}
+
+function getNextRevision(saleDateStr, historyArr = []) {
+    if(!saleDateStr) return '—';
+    let baseDate = new Date(saleDateStr + 'T00:00:00');
+    if(historyArr && historyArr.length > 0) {
+        let ultima = historyArr[historyArr.length - 1];
+        if(ultima.date) baseDate = new Date(ultima.date + 'T00:00:00');
+    }
+
+    let hoje = new Date();
+    hoje.setHours(0,0,0,0);
+    let marcosMeses = [3, 6, 9, 12];
+    let proximaData = null;
+    let nomeRevisao = '';
+
+    for(let m of marcosMeses) {
+        let d = new Date(baseDate);
+        d.setMonth(d.getMonth() + m);
+        if(d >= hoje) {
+            proximaData = d;
+            nomeRevisao = `${m} Meses`;
+            break;
+        }
+    }
+
+    if(!proximaData) {
+        proximaData = new Date(baseDate);
+        proximaData.setMonth(proximaData.getMonth() + 18);
+        nomeRevisao = 'Revisão Periódica';
+    }
+
+    return `${proximaData.toLocaleDateString('pt-BR')} (${nomeRevisao})`;
+}
+
+function renderPrinters(){
+    let qModel = ($('searchModel')?.value || '').toLowerCase();
+    let qSerial = ($('searchSerial')?.value || '').toLowerCase();
+    let filterW = $('filterWarranty')?.value || '';
+
+    let list = printersCache.filter(p => {
+        if (!p) return false;
+        let modelMatch = (p.model || '').toLowerCase().includes(qModel);
+        let serialMatch = (p.serial || '').toLowerCase().includes(qSerial);
+        let wInfo = getWarrantyStatus(p.date);
+        if (filterW && wInfo.status !== filterW) return false;
+        return modelMatch && serialMatch;
+    });
+    
+    let tbody = $('printerRows');
+    if(!tbody) return;
+
+    tbody.innerHTML = list.length ? list.map(p => {
+        let wInfo = getWarrantyStatus(p.date);
+        let pillClass = wInfo.status === 'active' ? 'active' : wInfo.status === 'warning' ? 'warning' : 'expired';
+        let revStr = getNextRevision(p.date, p.history);
+        let horasAtuais = p.history && p.history.length > 0 ? p.history[p.history.length - 1].hours : (p.initialHours || 0);
+
+        return `
+        <tr>
+            <td><strong>${escapeHtml(p.model)}</strong><small>S/N: ${escapeHtml(p.serial)}</small></td>
+            <td><strong>${escapeHtml(p.client)}</strong><small>Forn: ${escapeHtml(p.supplier)}</small></td>
+            <td><span class="pill ${pillClass}">${escapeHtml(wInfo.text)}</span></td>
+            <td><span style="color:var(--navy); font-weight:600;">${revStr}</span></td>
+            <td><strong>${horasAtuais} h</strong></td>
+            <td><div style="max-width: 200px; white-space: pre-wrap; font-size:12.5px;">${escapeHtml(p.notes || '—')}</div></td>
+            <td class="no-print">
+                <div class="row-actions">
+                    <button type="button" class="mini primary" onclick="openHistoryModal('${p.id}')"><i class="fa-solid fa-clock-rotate-left"></i> Histórico</button>
+                    <button type="button" class="mini" onclick="editPrinter('${p.id}')">Editar</button>
+                    <button type="button" class="mini danger" onclick="deletePrinter('${p.id}')">×</button>
+                </div>
+            </td>
+        </tr>
+    `;}).join('') : `<tr><td colspan="7" class="empty">Nenhuma impressora encontrada.</td></tr>`;
+}
+
+function openPrinterModal(){
+    if($('printerForm')) $('printerForm').reset();
+    if($('printerId')) $('printerId').value = '';
+    if($('pDate')) $('pDate').value = today();
+    if($('pInitialHours')) $('pInitialHours').value = '0';
+    let modal = $('printerModal');
+    if(modal) modal.classList.remove('hidden');
+}
+
+function closePrinterModal(){
+    $('printerModal').classList.add('hidden');
+}
+
+function editPrinter(id){
+    let p = printersCache.find(x => x.id === id);
+    if(!p) return;
+    openPrinterModal();
+    if($('printerId')) $('printerId').value = p.id;
+    if($('pModel')) $('pModel').value = p.model || '';
+    if($('pSerial')) $('pSerial').value = p.serial || '';
+    if($('pSupplier')) $('pSupplier').value = p.supplier || '';
+    if($('pClient')) $('pClient').value = p.client || '';
+    if($('pDate')) $('pDate').value = p.date || '';
+    if($('pInitialHours')) $('pInitialHours').value = p.initialHours || 0;
+    if($('pNotes')) $('pNotes').value = p.notes || '';
+    if($('modalTitle')) $('modalTitle').textContent = 'Editar Impressora';
+}
+
+async function savePrinter(e){
+    e.preventDefault();
+    let id = $('printerId')?.value || ('prn' + Date.now());
+    let existing = printersCache.find(x => x.id === id);
+
+    let p = {
+        id,
+        model: $('pModel')?.value || '',
+        serial: $('pSerial')?.value || '',
+        supplier: $('pSupplier')?.value || '',
+        client: $('pClient')?.value || '',
+        date: $('pDate')?.value || today(),
+        initialHours: Number($('pInitialHours')?.value) || 0,
+        notes: $('pNotes')?.value || '',
+        history: existing ? (existing.history || []) : []
+    };
+
+    await fetch('/api/printers', {
+        method: 'POST',
+        headers: { 'Content-Type': 'application/json' },
+        body: JSON.stringify(p)
+    });
+    
+    closePrinterModal();
+    loadPrinters();
+    toast('Impressora salva na nuvem com sucesso!');
+}
+
+async function deletePrinter(id){
+    if(confirm('Deseja excluir este registro de impressora?')){
+        await fetch(`/api/printers/${id}`, { method: 'DELETE' });
+        loadPrinters();
+        toast('Registro excluído.');
+    }
+}
+
+let currentPrinterId = null;
+
+function openHistoryModal(id){
+    let p = printersCache.find(x => x.id === id);
+    if(!p) return;
+
+    currentPrinterId = p.id;
+    $('histPrinterId').value = p.id;
+    $('histInfoModel').textContent = `${p.model} (S/N: ${p.serial})`;
+    $('histInfoClient').textContent = `Cliente: ${p.client} — Fornecedor: ${p.supplier}`;
+    $('histDate').value = today();
+    
+    let ultimaHoras = p.history && p.history.length > 0 ? p.history[p.history.length - 1].hours : (p.initialHours || 0);
+    $('histHours').value = ultimaHoras;
+    $('histDesc').value = '';
+
+    renderHistoryTable(p.history || []);
+    $('historyModal').classList.remove('hidden');
+}
+
+function closeHistoryModal(){
+    $('historyModal').classList.add('hidden');
+    currentPrinterId = null;
+}
+
+async function addHistoryEntry(e){
+    e.preventDefault();
+    if(!currentPrinterId) return;
+
+    let novaHoras = Number($('histHours').value) || 0;
+    let p = printersCache.find(x => x.id === currentPrinterId);
+    if(!p) return;
+
+    let ultimaHoras = p.history && p.history.length > 0 ? p.history[p.history.length - 1].hours : (p.initialHours || 0);
+
+    if(novaHoras < ultimaHoras) {
+        if(!confirm(`Atenção: As horas atuais (${novaHoras}h) são menores que a leitura anterior (${ultimaHoras}h). Deseja continuar?`)) {
+            return;
+        }
+    }
+
+    let entry = {
+        date: $('histDate').value,
+        hours: novaHoras,
+        desc: $('histDesc').value.trim()
+    };
+
+    if(!p.history) p.history = [];
+    p.history.push(entry);
+
+    await fetch('/api/printers', {
+        method: 'POST',
+        headers: { 'Content-Type': 'application/json' },
+        body: JSON.stringify(p)
+    });
+
+    renderHistoryTable(p.history);
+    loadPrinters();
+    toast('Histórico salvo na nuvem!');
+    $('histDesc').value = '';
+}
+
+function renderHistoryTable(historyArr){
+    let tbody = $('historyRows');
+    if(!tbody) return;
+
+    tbody.innerHTML = historyArr && historyArr.length > 0 ? historyArr.map(h => `
+        <tr>
+            <td>${h.date ? new Date(h.date + 'T00:00:00').toLocaleDateString('pt-BR') : '—'}</td>
+            <td><strong>${h.hours} h</strong></td>
+            <td>${escapeHtml(h.desc)}</td>
+        </tr>
+    `).join('') : `<tr><td colspan="3" class="empty">Nenhum histórico registrado ainda.</td></tr>`;
+}
+
+document.addEventListener('DOMContentLoaded', loadPrinters);
+</script>
+</body>
+</html>

@@ -1,0 +1,154 @@
+<!doctype html>
+<html lang="pt-BR">
+<head>
+<meta charset="utf-8">
+<meta name="viewport" content="width=device-width,initial-scale=1">
+<title>3D Primus • Financeiro & Faturamento</title>
+<link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.4.0/css/all.min.css">
+<style>
+:root {
+  --navy: #10243a;
+  --blue: #1769aa;
+  --orange: #f28b27;
+  --bg: #f3f6fa;
+  --ink: #172b3a;
+  --muted: #6d7c8b;
+  --line: #e3e9ef;
+  --white: #fff;
+  --green: #16845b;
+  --red: #c83c48;
+  --yellow: #b77908;
+}
+* { box-sizing: border-box; }
+body { margin: 0; font-family: Inter, Segoe UI, Arial, sans-serif; background: var(--bg); color: var(--ink); }
+button, input, select { font: inherit; }
+button { cursor: pointer; border: 0; border-radius: 10px; padding: 10px 14px; font-weight: 650; }
+.app { display: flex; min-height: 100vh; }
+.sidebar { width: 240px; background: var(--navy); color: #fff; padding: 24px 15px; display: flex; flex-direction: column; gap: 7px; z-index: 10; position: relative; }
+.brand { display: flex; align-items: center; gap: 10px; padding: 0 8px 25px; }
+.logo { width: 40px; height: 40px; border-radius: 12px; background: linear-gradient(135deg, #2583cf, var(--orange)); display: grid; place-items: center; font-weight: 900; color: white; }
+.brand strong { display: block; font-size: 15px; letter-spacing: .8px; }
+.brand small { color: #b7c8d7; }
+.nav { color: #c7d4df; background: transparent; text-align: left; padding: 12px; border-radius: 9px; display: flex; align-items: center; gap: 10px; text-decoration: none; border: none; width: 100%; cursor: pointer; font-size: 13.5px; }
+.nav.active, .nav:hover { background: #203d58; color: white; }
+.nav span { display: inline-block; width: 20px; text-align: center; }
+.sidebar .foot { margin-top: auto; color: #a8bdcf; font-size: 12px; line-height: 1.5; padding: 12px; }
+.main { flex: 1; min-width: 0; padding: 28px clamp(16px, 3vw, 36px); }
+.top { display: flex; justify-content: space-between; gap: 16px; align-items: center; margin-bottom: 24px; }
+.eyebrow { color: var(--green); font-weight: 750; font-size: 11px; letter-spacing: 1.4px; text-transform: uppercase; }
+.top h1 { margin: 5px 0; font-size: clamp(23px, 3vw, 30px); }
+.sub { color: var(--muted); font-size: 14px; }
+.cards { display: grid; grid-template-columns: repeat(4, minmax(0, 1fr)); gap: 14px; margin-bottom: 22px; }
+.metric, .panel { background: white; border: 1px solid var(--line); border-radius: 15px; padding: 18px; box-shadow: 0 4px 16px rgba(24,52,76,0.04); }
+.metric .label { font-size: 13px; color: var(--muted); }
+.metric .value { font-size: 24px; font-weight: 800; margin: 9px 0 4px; }
+.metric .hint { font-size: 12px; color: var(--muted); }
+.metric .dot { display: inline-block; width: 8px; height: 8px; border-radius: 50%; background: var(--orange); margin-right: 6px; }
+.panel { padding: 20px; margin-bottom: 20px; }
+.grid2 { display: grid; grid-template-columns: 1fr 1fr; gap: 16px; }
+.moneyline { display: flex; justify-content: space-between; padding: 12px 0; border-bottom: 1px solid var(--line); font-size: 14px; }
+.moneyline:last-child { border: 0; }
+.mini { padding: 6px 8px; font-size: 12px; background: #edf2f7; color: var(--navy); border-radius: 6px; text-decoration: none; display: inline-block; }
+.mini.danger { background: #fff0f1; color: var(--red); }
+.empty { padding: 25px; text-align: center; color: var(--muted); font-size: 13px; }
+@media (max-width: 1000px) { .cards { grid-template-columns: repeat(2, minmax(0, 1fr)); } .grid2 { grid-template-columns: 1fr; } }
+</style>
+</head>
+<body>
+<div class="app">
+<aside class="sidebar">
+ <div class="brand"><div class="logo">3D</div><div><strong>3D PRIMUS</strong><small>Produção & Custos</small></div></div>
+ <a href="index.html" class="nav"><span>⌂</span><b>Menu Principal</b></a>
+ <a href="producao_2.html" class="nav"><span>📦</span><b>Pedidos</b></a>
+ <a href="calculadora_3d.html" class="nav"><span>🧮</span><b>Calculadora 3D</b></a>
+ <a href="financeiro_e_faturamento.html" class="nav active"><span>＄</span><b>Financeiro</b></a>
+ <a href="comissoes.html" class="nav"><span>％</span><b>Comissão (7%)</b></a>
+ <div class="foot">Módulo de Produção<br>3D Primus 2026.</div>
+</aside>
+
+<main class="main">
+<header class="top">
+ <div>
+  <div class="eyebrow">Controle Financeiro</div>
+  <h1>Financeiro da Produção</h1>
+  <div class="sub">Acompanhe faturamento, custos operacionais e detecção de inconsistências dos pedidos de produção.</div>
+ </div>
+</header>
+
+<div class="cards" id="financeMetrics"></div>
+
+<div class="grid2">
+  <div class="panel">
+    <h2 style="font-size:17px; margin:0 0 16px; color:var(--navy);">Resumo Financeiro da Produção</h2>
+    <div id="financeSummary"></div>
+  </div>
+  <div class="panel">
+    <h2 style="font-size:17px; margin:0 0 16px; color:var(--red);">Pedidos com Inconsistências</h2>
+    <div id="inconsistentList"></div>
+  </div>
+</div>
+</main>
+</div>
+
+<script>
+const $ = id => document.getElementById(id);
+const money = n => new Intl.NumberFormat('pt-BR',{style:'currency',currency:'BRL'}).format(Number(n)||0);
+const escapeHtml = s => String(s ?? '').replace(/[&<>"']/g, c => ({'&':'&amp;','<':'&lt;','>':'&gt;','"':'&quot;',"'":'&#39;'}[c]));
+
+function renderFinance() {
+    let orders = [];
+    try {
+        let raw = localStorage.getItem('primus_orders');
+        if (raw) orders = JSON.parse(raw);
+        if (!Array.isArray(orders)) orders = [];
+    } catch (err) {
+        orders = [];
+    }
+
+    let valid = orders.filter(o => o && o.status !== 'Cancelado');
+    let faturamento = valid.reduce((s, o) => s + (Number(o.total) || 0), 0);
+    let custo = valid.reduce((s, o) => s + (Number(o.cost) || 0), 0);
+    let recebido = valid.reduce((s, o) => s + (Number(o.paid) || 0), 0);
+    let comissao = faturamento * 0.07;
+    let lucroLiquido = faturamento - custo - comissao;
+    let incons = valid.filter(o => o.financialStatus === 'Inconsistente');
+
+    if ($('financeMetrics')) {
+        $('financeMetrics').innerHTML = `
+            <div class="metric"><div class="label"><span class="dot" style="background:#1769aa"></span>Faturamento Total</div><div class="value">${money(faturamento)}</div><div class="hint">Vendas ativas</div></div>
+            <div class="metric"><div class="label"><span class="dot" style="background:#16845b"></span>Total Recebido</div><div class="value">${money(recebido)}</div><div class="hint">Entradas registradas</div></div>
+            <div class="metric"><div class="label"><span class="dot" style="background:#c83c48"></span>Custos Totais</div><div class="value">${money(custo)}</div><div class="hint">Soma de insumos</div></div>
+            <div class="metric"><div class="label"><span class="dot" style="background:#f28b27"></span>Lucro Líquido</div><div class="value">${money(lucroLiquido)}</div><div class="hint">Após comissão e custo</div></div>
+        `;
+    }
+
+    if ($('financeSummary')) {
+        $('financeSummary').innerHTML = `
+            <div class="moneyline"><span>Faturamento Bruto</span><strong>${money(faturamento)}</strong></div>
+            <div class="moneyline"><span>Valor Já Recebido</span><strong style="color:var(--green)">${money(recebido)}</strong></div>
+            <div class="moneyline"><span>Saldo a Receber</span><strong style="color:var(--orange)">${money(faturamento - recebido)}</strong></div>
+            <div class="moneyline"><span>Custos Operacionais</span><strong style="color:var(--red)">${money(custo)}</strong></div>
+            <div class="moneyline"><span>Provisão de Comissão (7%)</span><strong>${money(comissao)}</strong></div>
+            <div class="moneyline" style="border-top:2px solid var(--line); margin-top:8px; padding-top:12px; font-weight:800;">
+                <span>Lucro Líquido Estimado</span>
+                <span style="color:var(--green); font-size:16px;">${money(lucroLiquido)}</span>
+            </div>
+        `;
+    }
+
+    if ($('inconsistentList')) {
+        $('inconsistentList').innerHTML = incons.length ? incons.map(o => `
+            <div class="moneyline">
+                <div><strong>${escapeHtml(o.client || 'Cliente')}</strong><small style="color:var(--muted);display:block;">${escapeHtml(o.product || 'Produto')} • Total: ${money(o.total)}</small></div>
+                <a href="producao_2.html" class="mini danger" style="align-self:center;">Ver Pedido</a>
+            </div>
+        `).join('') : '<div class="empty">Nenhum registro inconsistente no momento. Parabéns!</div>';
+    }
+}
+
+document.addEventListener('DOMContentLoaded', () => {
+    renderFinance();
+});
+</script>
+</body>
+</html>
