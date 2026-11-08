@@ -73,17 +73,15 @@ button { cursor: pointer; border: 0; border-radius: 10px; padding: 10px 14px; fo
  <a href="index.html" class="nav"><span>⌂</span><b>Menu Principal</b></a>
  <a href="os_lista.html" class="nav"><span>📄</span><b>Lista de Serviços</b></a>
  <a href="os_nova.html" class="nav active"><span>＋</span><b>Nova Ordem (OS)</b></a>
- <a href="os_clientes.html" class="nav"><span>👤</span><b>Clientes da OS</b></a>
- <a href="os_financeiro.html" class="nav"><span>＄</span><b>Financeiro da OS</b></a>
  <div class="foot">Módulo OS • 3D Primus 2026.</div>
 </aside>
 
 <main class="main">
 <header class="top">
  <div>
-  <div class="eyebrow">Atendimento Técnico</div>
+  <div class="eyebrow">Atendimento Técnico (Nuvem)</div>
   <h1 id="pageTitle">Nova Ordem de Serviço</h1>
-  <div class="sub">Preencha os dados do cliente, equipamento e faça o checklist (V para OK, X para Não OK).</div>
+  <div class="sub">Preencha os dados do cliente, equipamento e faça o checklist.</div>
  </div>
 </header>
 
@@ -116,7 +114,6 @@ button { cursor: pointer; border: 0; border-radius: 10px; padding: 10px 14px; fo
     </select>
    </label>
 
-   <!-- Campo auxiliar caso escolha "Outro" -->
    <label class="field hidden" id="eqTypeCustomField">Especifique o Tipo *
     <input id="eqTypeCustom" placeholder="Ex: Tablet, Drone, Placa de Vídeo">
    </label>
@@ -125,11 +122,10 @@ button { cursor: pointer; border: 0; border-radius: 10px; padding: 10px 14px; fo
    <label class="field">Modelo *<input id="eqModel" required placeholder="Ex: Ender 3 Pro, Moto G20"></label>
    <label class="field">Número de Série (S/N)<input id="eqSerial" placeholder="Ex: SN987654321"></label>
 
-   <!-- CHECKLIST DINÂMICO COM OPÇÕES V ou X -->
+   <!-- CHECKLIST DINÂMICO -->
    <div class="field full">
     <span>Checklist de Entrada / Acessórios (V = OK | X = Não OK / Defeito):</span>
     
-    <!-- Impressora 3D -->
     <div id="checkImpressora" class="checklist-box hidden">
         <strong style="color:var(--navy); display:block; margin-bottom:8px;">🖨️ Checklist - Impressora 3D</strong>
         <div class="checklist-item"><span>Mesa / Cama Aquecedora ou Magnética</span><div class="checklist-options"><label style="color:var(--green);"><input type="radio" name="chk_Mesa_Cama" value="V"> [ V ] OK</label><label style="color:var(--red);"><input type="radio" name="chk_Mesa_Cama" value="X"> [ X ] Defeito</label></div></div>
@@ -140,7 +136,6 @@ button { cursor: pointer; border: 0; border-radius: 10px; padding: 10px 14px; fo
         <div class="checklist-item"><span>Cartão SD / Pen Drive Inclusos</span><div class="checklist-options"><label style="color:var(--green);"><input type="radio" name="chk_Cartao" value="V"> [ V ] Sim</label><label style="color:var(--red);"><input type="radio" name="chk_Cartao" value="X"> [ X ] Não</label></div></div>
     </div>
 
-    <!-- Celular / Smartphone -->
     <div id="checkCelular" class="checklist-box hidden">
         <strong style="color:var(--navy); display:block; margin-bottom:8px;">📱 Checklist - Celular / Smartphone</strong>
         <div class="checklist-item"><span>Tela / Touch (Riscos ou Trincas)</span><div class="checklist-options"><label style="color:var(--green);"><input type="radio" name="chk_Tela" value="V"> [ V ] OK</label><label style="color:var(--red);"><input type="radio" name="chk_Tela" value="X"> [ X ] Trincado/Riscado</label></div></div>
@@ -151,7 +146,6 @@ button { cursor: pointer; border: 0; border-radius: 10px; padding: 10px 14px; fo
         <div class="checklist-item"><span>Aparelho Liga Normal</span><div class="checklist-options"><label style="color:var(--green);"><input type="radio" name="chk_Liga" value="V"> [ V ] Sim</label><label style="color:var(--red);"><input type="radio" name="chk_Liga" value="X"> [ X ] Não Liga</label></div></div>
     </div>
 
-    <!-- Notebook / Computador -->
     <div id="checkComputador" class="checklist-box hidden">
         <strong style="color:var(--navy); display:block; margin-bottom:8px;">💻 Checklist - Notebook / Computador</strong>
         <div class="checklist-item"><span>Carregador / Fonte Original Inclusa</span><div class="checklist-options"><label style="color:var(--green);"><input type="radio" name="chk_Carregador" value="V"> [ V ] Sim</label><label style="color:var(--red);"><input type="radio" name="chk_Carregador" value="X"> [ X ] Não</label></div></div>
@@ -162,7 +156,6 @@ button { cursor: pointer; border: 0; border-radius: 10px; padding: 10px 14px; fo
         <div class="checklist-item"><span>Estado Externo (Carcaça / Riscos)</span><div class="checklist-options"><label style="color:var(--green);"><input type="radio" name="chk_Carcaça" value="V"> [ V ] Inteiro</label><label style="color:var(--red);"><input type="radio" name="chk_Carcaça" value="X"> [ X ] Amassado/Riscado</label></div></div>
     </div>
 
-    <!-- CAMPO MANUAL / OUTROS ITENS LIVRES -->
     <div style="margin-top: 12px; background: #fff; padding: 10px; border: 1px solid #d8e1e9; border-radius: 8px;">
         <label style="font-size: 11.5px; color: var(--navy); display: block; margin-bottom: 4px;"><strong>Outros Itens / Observações Manuais do Checklist:</strong></label>
         <input id="chkCustomText" placeholder="Ex: Tampa lateral quebrada, Parafusos faltando, Peça extra..." style="width: 100%; border: 1px solid #d8e1e9; padding: 8px; border-radius: 6px; font-size: 12.5px;">
@@ -237,16 +230,11 @@ button { cursor: pointer; border: 0; border-radius: 10px; padding: 10px 14px; fo
 <div id="toast" class="toast hidden"></div>
 
 <script>
+let clientListCache = [];
+let osListCache = [];
+
 const $ = id => document.getElementById(id);
 const today = () => new Date().toISOString().slice(0,10);
-
-function getOSList() {
-    try { return JSON.parse(localStorage.getItem('primus_os_list')) || []; } catch(e) { return []; }
-}
-
-function getClientList() {
-    try { return JSON.parse(localStorage.getItem('primus_clients_db')) || []; } catch(e) { return []; }
-}
 
 function toast(msg){
     let t = $('toast');
@@ -288,18 +276,34 @@ function handleEqTypeChange(){
     }
 }
 
-function populateClients(selectedName = ''){
+async function loadClients(selectedName = '') {
+    try {
+        let res = await fetch('/api/clients'); // Caso tenha API de clientes, ou buscamos das OS se necessário.
+        clientListCache = await res.json();
+    } catch(e) {
+        clientListCache = [];
+    }
+    
     let select = $('clientSelect');
     if(!select) return;
-    let clientList = getClientList();
 
-    if(clientList.length === 0){
+    if(clientListCache.length === 0){
         select.innerHTML = `<option value="">Nenhum cliente cadastrado (Clique em + Novo Cliente)</option>`;
         return;
     }
 
     select.innerHTML = `<option value="">Selecione um cliente cadastrado...</option>` + 
-        clientList.map(c => `<option value="${escapeHtml(c.name)}" ${c.name === selectedName ? 'selected' : ''}>${escapeHtml(c.name)} — Tel: ${escapeHtml(c.phone)}</option>`).join('');
+        clientListCache.map(c => `<option value="${escapeHtml(c.name)}" ${c.name === selectedName ? 'selected' : ''}>${escapeHtml(c.name)} — Tel: ${escapeHtml(c.phone)}</option>`).join('');
+}
+
+async function loadOSData() {
+    try {
+        let res = await fetch('/api/os');
+        osListCache = await res.json();
+        if(!Array.isArray(osListCache)) osListCache = [];
+    } catch(e) {
+        osListCache = [];
+    }
 }
 
 function openClientModal(){
@@ -314,9 +318,8 @@ function closeClientModal(){
     if(modal) modal.classList.add('hidden');
 }
 
-function saveQuickClient(e){
+async function saveQuickClient(e){
     e.preventDefault();
-    let clientList = getClientList();
     let newClient = {
         id: 'cli_' + Date.now(),
         name: $('qcName').value.trim(),
@@ -326,30 +329,41 @@ function saveQuickClient(e){
         birthday: $('qcBirthday').value
     };
 
-    clientList.push(newClient);
-    localStorage.setItem('primus_clients_db', JSON.stringify(clientList));
-
-    closeClientModal();
-    populateClients(newClient.name);
-    toast('Cliente cadastrado com sucesso!');
+    try {
+        let res = await fetch('/api/clients', {
+            method: 'POST',
+            headers: { 'Content-Type': 'application/json' },
+            body: JSON.stringify(newClient)
+        });
+        if(res.ok) {
+            closeClientModal();
+            loadClients(newClient.name);
+            toast('Cliente cadastrado com sucesso na nuvem!');
+        } else {
+            alert('Erro ao cadastrar cliente.');
+        }
+    } catch(err) {
+        alert('Erro de conexão.');
+    }
 }
 
 function escapeHtml(s){return String(s??'').replace(/[&<>"']/g,c=>({'&':'&amp;','<':'&lt;','>':'&gt;','"':'&quot;',"'":'&#39;'}[c]))}
 
-function initPage(){
-    let osList = getOSList();
-    let defaultWarranty = localStorage.getItem('primus_default_warranty') || '1. A garantia cobre apenas os defeitos e peças reparadas descritas nesta OS.\n2. Equipamentos não retirados em até 90 dias ficarão sujeitos à taxa de armazenagem.';
+async function initPage(){
+    await loadClients();
+    await loadOSData();
+
+    let defaultWarranty = '1. A garantia cobre apenas os defeitos e peças reparadas descritas nesta OS.\n2. Equipamentos não retirados em até 90 dias ficarão sujeitos à taxa de armazenagem.';
     
     let params = new URLSearchParams(window.location.search);
     let editId = params.get('id');
-    populateClients();
 
     if(editId){
-        let item = osList.find(x => x.id === editId);
+        let item = osListCache.find(x => x.id === editId);
         if(item){
             if($('pageTitle')) $('pageTitle').textContent = 'Editar Ordem de Serviço';
             if($('osId')) $('osId').value = item.id;
-            populateClients(item.client);
+            loadClients(item.client);
 
             let typeVal = item.eqType || '';
             let eqSelect = $('eqType');
@@ -363,7 +377,6 @@ function initPage(){
             }
             handleEqTypeChange();
 
-            // Restaura os radios do checklist (V ou X)
             if (item.checklistObj && typeof item.checklistObj === 'object') {
                 for (let [key, val] of Object.entries(item.checklistObj)) {
                     let radio = document.querySelector(`input[name="${key}"][value="${val}"]`);
@@ -398,7 +411,7 @@ function initPage(){
     }
 }
 
-function saveOS(e){
+async function saveOS(e){
     e.preventDefault();
     let clientName = $('clientSelect')?.value;
     if(!clientName){
@@ -411,11 +424,9 @@ function saveOS(e){
         eqTypeVal = $('eqTypeCustom')?.value.trim() || 'Outros';
     }
 
-    let clientList = getClientList();
-    let foundClient = clientList.find(c => c.name === clientName);
+    let foundClient = clientListCache.find(c => c.name === clientName);
     let clientPhone = foundClient ? foundClient.phone : '';
 
-    // Coleta todos os radios marcados de V ou X
     let checklistObj = {};
     let checklistTextos = [];
     document.querySelectorAll('input[type="radio"]:checked').forEach(r => {
@@ -430,9 +441,8 @@ function saveOS(e){
         checklistTextos.push(`Outros: ${customChk}`);
     }
 
-    let osList = getOSList();
     let id = $('osId')?.value || ('os_' + Date.now());
-    let osNumber = $('osId')?.value ? (osList.find(x => x.id === id)?.osNumber || Math.floor(1000 + Math.random() * 9000)) : Math.floor(1000 + Math.random() * 9000);
+    let osNumber = $('osId')?.value ? (osListCache.find(x => x.id === id)?.osNumber || Math.floor(1000 + Math.random() * 9000)) : Math.floor(1000 + Math.random() * 9000);
 
     let labor = Number($('laborCost')?.value) || 0;
     let parts = Number($('partsCost')?.value) || 0;
@@ -467,21 +477,24 @@ function saveOS(e){
         warrantyTerm: $('warrantyTerm')?.value || ''
     };
 
-    localStorage.setItem('primus_default_warranty', item.warrantyTerm);
-
-    let idx = osList.findIndex(x => x.id === id);
-    if(idx >= 0) osList[idx] = item; else osList.unshift(item);
-
-    localStorage.setItem('primus_os_list', JSON.stringify(osList));
-    toast('Ordem de serviço salva com sucesso!');
-    setTimeout(() => { window.location.href = 'os_lista.html'; }, 1200);
+    try {
+        let res = await fetch('/api/os', {
+            method: 'POST',
+            headers: { 'Content-Type': 'application/json' },
+            body: JSON.stringify(item)
+        });
+        if(res.ok){
+            toast('Ordem de serviço salva com sucesso na nuvem!');
+            setTimeout(() => { window.location.href = 'os_lista.html'; }, 1200);
+        } else {
+            alert('Erro ao salvar OS no servidor.');
+        }
+    } catch(err) {
+        alert('Erro de conexão com o servidor.');
+    }
 }
 
-if (document.readyState === 'loading') {
-    document.addEventListener('DOMContentLoaded', initPage);
-} else {
-    initPage();
-}
+document.addEventListener('DOMContentLoaded', initPage);
 </script>
 </body>
 </html>
