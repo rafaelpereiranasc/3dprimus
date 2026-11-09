@@ -1,7 +1,6 @@
 {
   "name": "3dprimus",
   "version": "1.0.0",
-  "description": "Sistema de Gestão 3D Primus",
   "main": "server.js",
   "scripts": {
     "start": "node server.js"
