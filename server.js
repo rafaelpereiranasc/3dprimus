@@ -97,17 +97,17 @@ async function handleGetPedidos(req, res) {
         const result = await pool.query('SELECT * FROM pedidos_novo ORDER BY id DESC');
         res.json(result.rows.map(row => ({
             id: row.id.toString(),
-            client: row.client,
-            product: row.product,
-            statusProd: row.status_prod,
-            statusFin: row.status_fin,
-            maker: row.maker,
-            total: row.total,
-            cost: row.cost,
-            paid: row.paid,
-            paymentMethod: row.payment_method,
-            notes: row.notes,
-            date: row.date
+            client: row.client || '',
+            product: row.product || '',
+            statusProd: row.status_prod || 'Em produção',
+            statusFin: row.status_fin || 'Pendente',
+            maker: row.maker || '',
+            total: row.total || 0,
+            cost: row.cost || 0,
+            paid: row.paid || 0,
+            paymentMethod: row.payment_method || '',
+            notes: row.notes || '',
+            date: row.date || ''
         })));
     } catch (err) {
         res.status(500).json({ error: "Erro ao buscar pedidos" });
@@ -130,7 +130,7 @@ async function handlePostPedidos(req, res) {
         const date = data.date || new Date().toISOString().split('T')[0];
 
         if (data.id) {
-            await pool.query(`UPDATE pedidos_novo SET client=$1, product=$2, status_prod=$3, status_fin=$4, maker=$5, total=$6, cost=$7, paid=$8, payment_method=$9, notes=$10, date=$11 WHERE id=$12`,
+            const result = await pool.query(`UPDATE pedidos_novo SET client=$1, product=$2, status_prod=$3, status_fin=$4, maker=$5, total=$6, cost=$7, paid=$8, payment_method=$9, notes=$10, date=$11 WHERE id=$12 RETURNING id;`,
             [client, product, statusProd, statusFin, maker, total, cost, paid, paymentMethod, notes, date, parseInt(data.id)]);
             res.json({ success: true, id: data.id });
         } else {
@@ -139,8 +139,8 @@ async function handlePostPedidos(req, res) {
             res.json({ success: true, id: result.rows[0].id.toString() });
         }
     } catch (err) {
-        console.error("Erro detalhado pedido:", err);
-        res.json({ success: true, id: "999" }); // Segurança contra travamentos para a entrega
+        console.error("Erro real ao salvar pedido no banco:", err);
+        res.status(500).json({ error: "Erro ao salvar pedido no banco de dados." });
     }
 }
 
