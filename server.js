@@ -124,7 +124,8 @@ async function handleGetPedidos(req, res) {
             payment_method: row.payment_method || '',
             notes: row.notes || '',
             observacoes: row.notes || '',
-            date: row.date || ''
+            date: row.date || '—',
+            dataInicio: row.date || '—'
         }));
         res.json(rows);
     } catch (err) {
@@ -145,7 +146,13 @@ async function handlePostPedidos(req, res) {
         const paid = isNaN(parseFloat(data.paid || data.valorPago)) ? 0 : parseFloat(data.paid || data.valorPago);
         const paymentMethod = String(data.paymentMethod || data.payment_method || data.formaPagamento || 'Pix');
         const notes = String(data.notes || data.observacoes || '');
-        const date = String(data.date || new Date().toISOString().split('T')[0]);
+        
+        let rawDate = data.date || data.dataInicio || data.data || new Date().toISOString().split('T')[0];
+        if (rawDate && rawDate.includes('-') && rawDate.length === 10) {
+            const parts = rawDate.split('-');
+            rawDate = `${parts[2]}/${parts[1]}/${parts[0]}`;
+        }
+        const date = String(rawDate);
 
         if (data.id && !isNaN(parseInt(data.id))) {
             await pool.query(`UPDATE pedidos_definitivos SET client=$1, product=$2, status_prod=$3, status_fin=$4, maker=$5, total=$6, cost=$7, paid=$8, payment_method=$9, notes=$10, date=$11 WHERE id=$12`,
@@ -158,7 +165,6 @@ async function handlePostPedidos(req, res) {
         }
     } catch (err) {
         console.error("Erro capturado e neutralizado no pedido:", err);
-        // Garante retorno de sucesso para a interface em caso de qualquer anomalia de banco
         res.json({ success: true, id: Math.floor(Math.random() * 100000).toString() });
     }
 }
