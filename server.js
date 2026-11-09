@@ -24,13 +24,22 @@ async function initDB() {
                 total REAL, paid REAL, executed_service TEXT, warranty_term TEXT, checklist_json TEXT
             );
 
-            CREATE TABLE IF NOT EXISTS pedidos_finais (
+            CREATE TABLE IF NOT EXISTS pedidos_oficial (
                 id SERIAL PRIMARY KEY,
-                client TEXT, product TEXT, status_prod TEXT, status_fin TEXT,
-                maker TEXT, total REAL, cost REAL, paid REAL, payment_method TEXT, notes TEXT, date TEXT
+                client TEXT,
+                product TEXT,
+                status_prod TEXT,
+                status_fin TEXT,
+                maker TEXT,
+                total REAL,
+                cost REAL,
+                paid REAL,
+                payment_method TEXT,
+                notes TEXT,
+                date TEXT
             );
         `);
-        console.log("Banco PostgreSQL conectado com sucesso!");
+        console.log("Banco PostgreSQL conectado e tabela pedidos_oficial pronta!");
     } catch (err) {
         console.error("Erro ao inicializar o banco:", err);
     }
@@ -91,11 +100,11 @@ app.delete('/api/os/:id', async (req, res) => {
     }
 });
 
-// --- ROTAS DE PEDIDOS / PRODUÇÃO COM MAPEAMENTO COMPATÍVEL ---
+// --- ROTAS DE PEDIDOS / PRODUÇÃO (oficiais) ---
 async function handleGetPedidos(req, res) {
     try {
-        const result = await pool.query('SELECT * FROM pedidos_finais ORDER BY id DESC');
-        res.json(result.rows.map(row => ({
+        const result = await pool.query('SELECT * FROM pedidos_oficial ORDER BY id DESC');
+        const rows = result.rows.map(row => ({
             id: row.id.toString(),
             client: row.client || '',
             cliente: row.client || '',
@@ -115,8 +124,10 @@ async function handleGetPedidos(req, res) {
             notes: row.notes || '',
             observacoes: row.notes || '',
             date: row.date || ''
-        })));
+        }));
+        res.json(rows);
     } catch (err) {
+        console.error("Erro ao buscar pedidos:", err);
         res.json([]);
     }
 }
@@ -124,38 +135,39 @@ async function handleGetPedidos(req, res) {
 async function handlePostPedidos(req, res) {
     const data = req.body;
     try {
-        const client = String(data.client || data.cliente || 'Cliente');
-        const product = String(data.product || data.item || data.produto || 'Produto 3D');
-        const statusProd = String(data.statusProd || data.status_prod || 'Em produção');
-        const statusFin = String(data.statusFin || data.status_fin || 'Pendente');
-        const maker = String(data.maker || data.responsavel || 'Rafael');
-        const total = Number(data.total) || 0;
-        const cost = Number(data.cost) || Number(data.laborCost) || 0;
-        const paid = Number(data.paid) || Number(data.valorPago) || 0;
-        const paymentMethod = String(data.paymentMethod || data.payment_method || data.formaPagamento || 'Pix');
-        const notes = String(data.notes || data.observacoes || '');
-        const date = String(data.date || new Date().toISOString().split('T')[0]);
+        const client = data.client || data.cliente || 'Cliente';
+        const product = data.product || data.item || data.produto || 'Produto 3D';
+        const statusProd = data.statusProd || data.status_prod || 'Em produção';
+        const statusFin = data.statusFin || data.status_fin || 'Pendente';
+        const maker = data.maker || data.responsavel || 'Rafael';
+        const total = parseFloat(data.total) || 0;
+        const cost = parseFloat(data.cost) || parseFloat(data.laborCost) || 0;
+        const paid = parseFloat(data.paid) || parseFloat(data.valorPago) || 0;
+        const paymentMethod = data.paymentMethod || data.payment_method || data.formaPagamento || 'Pix';
+        const notes = data.notes || data.observacoes || '';
+        const date = data.date || new Date().toISOString().split('T')[0];
 
         if (data.id) {
-            await pool.query(`UPDATE pedidos_finais SET client=$1, product=$2, status_prod=$3, status_fin=$4, maker=$5, total=$6, cost=$7, paid=$8, payment_method=$9, notes=$10, date=$11 WHERE id=$12`,
+            await pool.query(`UPDATE pedidos_oficial SET client=$1, product=$2, status_prod=$3, status_fin=$4, maker=$5, total=$6, cost=$7, paid=$8, payment_method=$9, notes=$10, date=$11 WHERE id=$12`,
             [client, product, statusProd, statusFin, maker, total, cost, paid, paymentMethod, notes, date, parseInt(data.id)]);
             res.json({ success: true, id: data.id });
         } else {
-            const result = await pool.query(`INSERT INTO pedidos_finais (client, product, status_prod, status_fin, maker, total, cost, paid, payment_method, notes, date) VALUES ($1,$2,$3,$4,$5,$6,$7,$8,$9,$10,$11) RETURNING id;`,
+            const result = await pool.query(`INSERT INTO pedidos_oficial (client, product, status_prod, status_fin, maker, total, cost, paid, payment_method, notes, date) VALUES ($1,$2,$3,$4,$5,$6,$7,$8,$9,$10,$11) RETURNING id;`,
             [client, product, statusProd, statusFin, maker, total, cost, paid, paymentMethod, notes, date]);
             res.json({ success: true, id: result.rows[0].id.toString() });
         }
     } catch (err) {
-        res.json({ success: true, id: "999" });
+        console.error("ERRO REAL AO SALVAR PEDIDO NO POSTGRES:", err);
+        res.status(500).json({ error: "Erro ao salvar pedido no banco de dados." });
     }
 }
 
 async function handleDeletePedidos(req, res) {
     try {
-        await pool.query('DELETE FROM pedidos_finais WHERE id = $1', [parseInt(req.params.id)]);
+        await pool.query('DELETE FROM pedidos_oficial WHERE id = $1', [parseInt(req.params.id)]);
         res.json({ success: true });
     } catch (err) {
-        res.json({ success: true });
+        res.status(500).json({ error: "Erro ao excluir pedido" });
     }
 }
 
