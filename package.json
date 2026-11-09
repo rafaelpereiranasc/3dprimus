@@ -1,14 +1,13 @@
 {
-  "name": "3d-primus-sistema",
+  "name": "3dprimus",
   "version": "1.0.0",
-  "description": "Sistema 3D Primus com Banco de Dados na Nuvem",
+  "description": "Sistema de Gestão 3D Primus",
   "main": "server.js",
   "scripts": {
     "start": "node server.js"
   },
   "dependencies": {
     "express": "^4.18.2",
-    "sqlite3": "^5.1.7",
-    "cors": "^2.8.5"
+    "pg": "^8.11.3"
   }
 }
