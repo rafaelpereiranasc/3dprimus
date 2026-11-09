@@ -27,19 +27,21 @@ async function initDB() {
             CREATE TABLE IF NOT EXISTS pedidos_definitivos (
                 id SERIAL PRIMARY KEY,
                 client TEXT,
+                phone TEXT,
                 product TEXT,
-                status_prod TEXT,
-                status_fin TEXT,
-                maker TEXT,
+                start_date TEXT,
+                deadline TEXT,
+                status TEXT,
+                financial_status TEXT,
+                responsible TEXT,
                 total REAL,
                 cost REAL,
                 paid REAL,
                 payment_method TEXT,
-                notes TEXT,
-                date TEXT
+                notes TEXT
             );
         `);
-        console.log("Banco PostgreSQL conectado e tabela pedidos_definitivos pronta!");
+        console.log("Banco PostgreSQL conectado e tabelas prontas!");
     } catch (err) {
         console.error("Erro ao inicializar o banco:", err);
     }
@@ -100,40 +102,29 @@ app.delete('/api/os/:id', async (req, res) => {
     }
 });
 
-// --- ROTAS DE PEDIDOS / PRODUÇÃO COM MAPEAMENTO EXATO PARA O HTML ---
+// --- ROTAS DE PEDIDOS / PRODUÇÃO PERFEITAMENTE MAPEADAS PARA O HTML ---
 async function handleGetPedidos(req, res) {
     try {
         const result = await pool.query('SELECT * FROM pedidos_definitivos ORDER BY id DESC');
-        const rows = result.rows.map(row => {
-            const dataFormatada = row.date || '—';
-            return {
-                id: row.id.toString(),
-                client: row.client || '',
-                cliente: row.client || '',
-                product: row.product || '',
-                produto: row.product || '',
-                item: row.product || '',
-                statusProd: row.status_prod || 'Em produção',
-                status_prod: row.status_prod || 'Em produção',
-                statusFin: row.status_fin || 'Pendente',
-                status_fin: row.status_fin || 'Pendente',
-                maker: row.maker || 'Rafael',
-                responsavel: row.maker || 'Rafael',
-                total: row.total || 0,
-                cost: row.cost || 0,
-                paid: row.paid || 0,
-                paymentMethod: row.payment_method || '',
-                payment_method: row.payment_method || '',
-                notes: row.notes || '',
-                observacoes: row.notes || '',
-                date: dataFormatada,
-                dataInicio: dataFormatada,
-                inicio: dataFormatada,
-                prazo: dataFormatada
-            };
-        });
+        const rows = result.rows.map(row => ({
+            id: row.id.toString(),
+            client: row.client || '',
+            phone: row.phone || '',
+            product: row.product || '',
+            startDate: row.start_date || '',
+            deadline: row.deadline || '',
+            status: row.status || 'Em produção',
+            financialStatus: row.financial_status || 'Pendente',
+            responsible: row.responsible || 'Rafael',
+            total: row.total || 0,
+            cost: row.cost || 0,
+            paid: row.paid || 0,
+            paymentMethod: row.payment_method || 'Pix',
+            notes: row.notes || ''
+        }));
         res.json(rows);
     } catch (err) {
+        console.error("Erro ao buscar pedidos:", err);
         res.json([]);
     }
 }
@@ -141,41 +132,33 @@ async function handleGetPedidos(req, res) {
 async function handlePostPedidos(req, res) {
     const data = req.body || {};
     try {
-        const client = String(data.client || data.cliente || data.nomeCliente || 'Cliente');
-        const product = String(data.product || data.item || data.produto || data.nomeProduto || 'Produto 3D');
-        const statusProd = String(data.statusProd || data.status_prod || data.status || 'Em produção');
-        const statusFin = String(data.statusFin || data.status_fin || 'Pendente');
-        const maker = String(data.maker || data.responsavel || 'Rafael');
+        const client = String(data.client || '');
+        const phone = String(data.phone || '');
+        const product = String(data.product || '');
+        const startDate = String(data.startDate || '');
+        const deadline = String(data.deadline || '');
+        const status = String(data.status || 'Em produção');
+        const financialStatus = String(data.financialStatus || 'Pendente');
+        const responsible = String(data.responsible || 'Rafael');
         const total = isNaN(parseFloat(data.total)) ? 0 : parseFloat(data.total);
-        const cost = isNaN(parseFloat(data.cost || data.laborCost)) ? 0 : parseFloat(data.cost || data.laborCost);
-        const paid = isNaN(parseFloat(data.paid || data.valorPago)) ? 0 : parseFloat(data.paid || data.valorPago);
-        const paymentMethod = String(data.paymentMethod || data.payment_method || data.formaPagamento || 'Pix');
-        const notes = String(data.notes || data.observacoes || '');
-        
-        let rawDate = data.date || data.dataInicio || data.data || data.dataPedido || data.inicio || data.prazo || '';
-        
-        if (!rawDate) {
-            rawDate = new Date().toISOString().split('T')[0];
-        }
-
-        if (rawDate && rawDate.includes('-') && rawDate.length === 10) {
-            const parts = rawDate.split('-');
-            rawDate = `${parts[2]}/${parts[1]}/${parts[0]}`;
-        }
-        const date = String(rawDate);
+        const cost = isNaN(parseFloat(data.cost)) ? 0 : parseFloat(data.cost);
+        const paid = isNaN(parseFloat(data.paid)) ? 0 : parseFloat(data.paid);
+        const paymentMethod = String(data.paymentMethod || 'Pix');
+        const notes = String(data.notes || '');
 
         if (data.id && !isNaN(parseInt(data.id))) {
-            await pool.query(`UPDATE pedidos_definitivos SET client=$1, product=$2, status_prod=$3, status_fin=$4, maker=$5, total=$6, cost=$7, paid=$8, payment_method=$9, notes=$10, date=$11 WHERE id=$12`,
-            [client, product, statusProd, statusFin, maker, total, cost, paid, paymentMethod, notes, date, parseInt(data.id)]);
+            // Se veio um ID numérico do banco
+            await pool.query(`UPDATE pedidos_definitivos SET client=$1, phone=$2, product=$3, start_date=$4, deadline=$5, status=$6, financial_status=$7, responsible=$8, total=$9, cost=$10, paid=$11, payment_method=$12, notes=$13 WHERE id=$14`,
+            [client, phone, product, startDate, deadline, status, financialStatus, responsible, total, cost, paid, paymentMethod, notes, parseInt(data.id)]);
             res.json({ success: true, id: data.id.toString() });
         } else {
-            const result = await pool.query(`INSERT INTO pedidos_definitivos (client, product, status_prod, status_fin, maker, total, cost, paid, payment_method, notes, date) VALUES ($1,$2,$3,$4,$5,$6,$7,$8,$9,$10,$11) RETURNING id;`,
-            [client, product, statusProd, statusFin, maker, total, cost, paid, paymentMethod, notes, date]);
+            const result = await pool.query(`INSERT INTO pedidos_definitivos (client, phone, product, start_date, deadline, status, financial_status, responsible, total, cost, paid, payment_method, notes) VALUES ($1,$2,$3,$4,$5,$6,$7,$8,$9,$10,$11,$12,$13) RETURNING id;`,
+            [client, phone, product, startDate, deadline, status, financialStatus, responsible, total, cost, paid, paymentMethod, notes]);
             res.json({ success: true, id: result.rows[0].id.toString() });
         }
     } catch (err) {
-        console.error("Erro no post pedidos:", err);
-        res.json({ success: true, id: Math.floor(Math.random() * 100000).toString() });
+        console.error("Erro ao salvar pedido:", err);
+        res.status(500).json({ error: "Erro ao salvar pedido" });
     }
 }
 
@@ -184,7 +167,7 @@ async function handleDeletePedidos(req, res) {
         await pool.query('DELETE FROM pedidos_definitivos WHERE id = $1', [parseInt(req.params.id)]);
         res.json({ success: true });
     } catch (err) {
-        res.json({ success: true });
+        res.status(500).json({ error: "Erro ao excluir pedido" });
     }
 }
 
