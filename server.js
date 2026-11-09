@@ -24,13 +24,13 @@ async function initDB() {
                 total REAL, paid REAL, executed_service TEXT, warranty_term TEXT, checklist_json TEXT
             );
 
-            CREATE TABLE IF NOT EXISTS pedidos_novo (
+            CREATE TABLE IF NOT EXISTS pedidos_finais (
                 id SERIAL PRIMARY KEY,
                 client TEXT, product TEXT, status_prod TEXT, status_fin TEXT,
                 maker TEXT, total REAL, cost REAL, paid REAL, payment_method TEXT, notes TEXT, date TEXT
             );
         `);
-        console.log("Banco PostgreSQL conectado e tabelas criadas com sucesso!");
+        console.log("Banco PostgreSQL conectado e tabela pedidos_finais criada com sucesso!");
     } catch (err) {
         console.error("Erro ao inicializar o banco:", err);
     }
@@ -91,10 +91,10 @@ app.delete('/api/os/:id', async (req, res) => {
     }
 });
 
-// --- ROTAS DE PEDIDOS / PRODUÇÃO ---
+// --- ROTAS DE PEDIDOS / PRODUÇÃO (USANDO pedidos_finais) ---
 async function handleGetPedidos(req, res) {
     try {
-        const result = await pool.query('SELECT * FROM pedidos_novo ORDER BY id DESC');
+        const result = await pool.query('SELECT * FROM pedidos_finais ORDER BY id DESC');
         res.json(result.rows.map(row => ({
             id: row.id.toString(),
             client: row.client || '',
@@ -130,23 +130,23 @@ async function handlePostPedidos(req, res) {
         const date = data.date || new Date().toISOString().split('T')[0];
 
         if (data.id) {
-            const result = await pool.query(`UPDATE pedidos_novo SET client=$1, product=$2, status_prod=$3, status_fin=$4, maker=$5, total=$6, cost=$7, paid=$8, payment_method=$9, notes=$10, date=$11 WHERE id=$12 RETURNING id;`,
+            await pool.query(`UPDATE pedidos_finais SET client=$1, product=$2, status_prod=$3, status_fin=$4, maker=$5, total=$6, cost=$7, paid=$8, payment_method=$9, notes=$10, date=$11 WHERE id=$12`,
             [client, product, statusProd, statusFin, maker, total, cost, paid, paymentMethod, notes, date, parseInt(data.id)]);
             res.json({ success: true, id: data.id });
         } else {
-            const result = await pool.query(`INSERT INTO pedidos_novo (client, product, status_prod, status_fin, maker, total, cost, paid, payment_method, notes, date) VALUES ($1,$2,$3,$4,$5,$6,$7,$8,$9,$10,$11) RETURNING id;`,
+            const result = await pool.query(`INSERT INTO pedidos_finais (client, product, status_prod, status_fin, maker, total, cost, paid, payment_method, notes, date) VALUES ($1,$2,$3,$4,$5,$6,$7,$8,$9,$10,$11) RETURNING id;`,
             [client, product, statusProd, statusFin, maker, total, cost, paid, paymentMethod, notes, date]);
             res.json({ success: true, id: result.rows[0].id.toString() });
         }
     } catch (err) {
-        console.error("Erro real ao salvar pedido no banco:", err);
-        res.status(500).json({ error: "Erro ao salvar pedido no banco de dados." });
+        console.error("Erro ao salvar pedido:", err);
+        res.status(500).json({ error: "Erro ao salvar pedido no banco." });
     }
 }
 
 async function handleDeletePedidos(req, res) {
     try {
-        await pool.query('DELETE FROM pedidos_novo WHERE id = $1', [parseInt(req.params.id)]);
+        await pool.query('DELETE FROM pedidos_finais WHERE id = $1', [parseInt(req.params.id)]);
         res.json({ success: true });
     } catch (err) {
         res.status(500).json({ error: "Erro ao excluir pedido" });
