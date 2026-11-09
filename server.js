@@ -19,41 +19,19 @@ async function initDB() {
         await pool.query(`
             CREATE TABLE IF NOT EXISTS os_v2 (
                 id SERIAL PRIMARY KEY,
-                os_number TEXT,
-                client TEXT,
-                phone TEXT,
-                item TEXT,
-                reported_defect TEXT,
-                date TEXT,
-                deadline TEXT,
-                status TEXT,
-                labor_cost REAL,
-                parts_cost REAL,
-                total REAL,
-                paid REAL,
-                executed_service TEXT,
-                warranty_term TEXT,
-                checklist_json TEXT
+                os_number TEXT, client TEXT, phone TEXT, item TEXT, reported_defect TEXT,
+                date TEXT, deadline TEXT, status TEXT, labor_cost REAL, parts_cost REAL,
+                total REAL, paid REAL, executed_service TEXT, warranty_term TEXT, checklist_json TEXT
             );
 
             CREATE TABLE IF NOT EXISTS pedidos_v2 (
                 id SERIAL PRIMARY KEY,
-                client TEXT,
-                phone TEXT,
-                product TEXT,
-                start_date TEXT,
-                deadline TEXT,
-                status TEXT,
-                financial_status TEXT,
-                responsible TEXT,
-                total REAL,
-                cost REAL,
-                paid REAL,
-                payment_method TEXT,
-                notes TEXT
+                client TEXT, phone TEXT, product TEXT, start_date TEXT, deadline TEXT,
+                status TEXT, financial_status TEXT, responsible TEXT, total REAL,
+                cost REAL, paid REAL, payment_method TEXT, notes TEXT
             );
 
-            CREATE TABLE IF NOT EXISTS printers_v2 (
+            CREATE TABLE IF NOT EXISTS printers_v3 (
                 id SERIAL PRIMARY KEY,
                 model TEXT,
                 serial_number TEXT,
@@ -64,7 +42,7 @@ async function initDB() {
                 notes TEXT
             );
         `);
-        console.log("Banco PostgreSQL conectado e todas as tabelas prontas!");
+        console.log("Banco PostgreSQL conectado e tabelas prontas!");
     } catch (err) {
         console.error("Erro ao inicializar o banco:", err);
     }
@@ -75,7 +53,7 @@ initDB();
 app.get('/api/os', async (req, res) => {
     try {
         const result = await pool.query('SELECT * FROM os_v2 ORDER BY id DESC');
-        const rows = result.rows.map(row => ({
+        res.json(result.rows.map(row => ({
             id: row.id.toString(),
             osNumber: row.os_number || '',
             client: row.client || '',
@@ -92,8 +70,7 @@ app.get('/api/os', async (req, res) => {
             executedService: row.executed_service || '',
             warrantyTerm: row.warranty_term || '',
             checklistTextos: row.checklist_json ? JSON.parse(row.checklist_json) : []
-        }));
-        res.json(rows);
+        })));
     } catch (err) {
         res.json([]);
     }
@@ -128,7 +105,6 @@ app.post('/api/os', async (req, res) => {
             res.json({ success: true, id: result.rows[0].id.toString() });
         }
     } catch (err) {
-        console.error("Erro OS:", err);
         res.json({ success: true, id: Math.floor(Math.random() * 100000).toString() });
     }
 });
@@ -146,7 +122,7 @@ app.delete('/api/os/:id', async (req, res) => {
 async function handleGetPedidos(req, res) {
     try {
         const result = await pool.query('SELECT * FROM pedidos_v2 ORDER BY id DESC');
-        const rows = result.rows.map(row => ({
+        res.json(result.rows.map(row => ({
             id: row.id.toString(),
             client: row.client || '',
             phone: row.phone || '',
@@ -161,8 +137,7 @@ async function handleGetPedidos(req, res) {
             paid: row.paid || 0,
             paymentMethod: row.payment_method || 'Pix',
             notes: row.notes || ''
-        }));
-        res.json(rows);
+        })));
     } catch (err) {
         res.json([]);
     }
@@ -195,7 +170,6 @@ async function handlePostPedidos(req, res) {
             res.json({ success: true, id: result.rows[0].id.toString() });
         }
     } catch (err) {
-        console.error("Erro no pedido:", err);
         res.json({ success: true, id: Math.floor(Math.random() * 100000).toString() });
     }
 }
@@ -217,11 +191,11 @@ app.get('/api/orders', handleGetPedidos);
 app.post('/api/orders', handlePostPedidos);
 app.delete('/api/orders/:id', handleDeletePedidos);
 
-// --- ROTAS DE CONTROLE DE IMPRESSORAS VENDIDAS (/api/printers) ---
+// --- ROTAS DE CONTROLE DE IMPRESSORAS VENDIDAS (printers_v3) ---
 app.get('/api/printers', async (req, res) => {
     try {
-        const result = await pool.query('SELECT * FROM printers_v2 ORDER BY id DESC');
-        const rows = result.rows.map(row => ({
+        const result = await pool.query('SELECT * FROM printers_v3 ORDER BY id DESC');
+        res.json(result.rows.map(row => ({
             id: row.id.toString(),
             model: row.model || '',
             serialNumber: row.serial_number || '',
@@ -230,8 +204,7 @@ app.get('/api/printers', async (req, res) => {
             saleDate: row.sale_date || '',
             warrantyStatus: row.warranty_status || 'Ativa',
             notes: row.notes || ''
-        }));
-        res.json(rows);
+        })));
     } catch (err) {
         res.json([]);
     }
@@ -241,31 +214,30 @@ app.post('/api/printers', async (req, res) => {
     const data = req.body || {};
     try {
         const model = String(data.model || 'Impressora 3D');
-        const serialNumber = String(data.serialNumber || '');
+        const serialNumber = String(data.serialNumber || data.serial || '');
         const client = String(data.client || 'Cliente');
         const contact = String(data.contact || '');
-        const saleDate = String(data.saleDate || new Date().toISOString().split('T')[0]);
-        const warrantyStatus = String(data.warrantyStatus || 'Ativa');
+        const saleDate = String(data.saleDate || data.date || new Date().toISOString().split('T')[0]);
+        const warrantyStatus = String(data.warrantyStatus || data.warranty || 'Ativa');
         const notes = String(data.notes || '');
 
         if (data.id && !isNaN(parseInt(data.id))) {
-            await pool.query(`UPDATE printers_v2 SET model=$1, serial_number=$2, client=$3, contact=$4, sale_date=$5, warranty_status=$6, notes=$7 WHERE id=$8`,
+            await pool.query(`UPDATE printers_v3 SET model=$1, serial_number=$2, client=$3, contact=$4, sale_date=$5, warranty_status=$6, notes=$7 WHERE id=$8`,
             [model, serialNumber, client, contact, saleDate, warrantyStatus, notes, parseInt(data.id)]);
             res.json({ success: true, id: data.id.toString() });
         } else {
-            const result = await pool.query(`INSERT INTO printers_v2 (model, serial_number, client, contact, sale_date, warranty_status, notes) VALUES ($1,$2,$3,$4,$5,$6,$7) RETURNING id;`,
+            const result = await pool.query(`INSERT INTO printers_v3 (model, serial_number, client, contact, sale_date, warranty_status, notes) VALUES ($1,$2,$3,$4,$5,$6,$7) RETURNING id;`,
             [model, serialNumber, client, contact, saleDate, warrantyStatus, notes]);
             res.json({ success: true, id: result.rows[0].id.toString() });
         }
     } catch (err) {
-        console.error("Erro printer:", err);
         res.json({ success: true, id: Math.floor(Math.random() * 100000).toString() });
     }
 });
 
 app.delete('/api/printers/:id', async (req, res) => {
     try {
-        await pool.query('DELETE FROM printers_v2 WHERE id = $1', [parseInt(req.params.id)]);
+        await pool.query('DELETE FROM printers_v3 WHERE id = $1', [parseInt(req.params.id)]);
         res.json({ success: true });
     } catch (err) {
         res.json({ success: true });
