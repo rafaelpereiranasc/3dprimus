@@ -9,38 +9,22 @@ app.use(express.json());
 app.use(express.urlencoded({ extended: true }));
 app.use(express.static(__dirname));
 
-// Conexão com o PostgreSQL do Render
 const pool = new Pool({
     connectionString: "postgresql://db_3d_primus_db_user:95zbjxWGXPv9xoZML2Sd2KchsNxKEcVJ@dpg-dbah27ijnfac73fmgg20-a/db_3d_primus_db",
-    ssl: {
-        rejectUnauthorized: false
-    }
+    ssl: { rejectUnauthorized: false }
 });
 
-// Inicialização das tabelas no PostgreSQL
 async function initDB() {
     try {
         await pool.query(`
             CREATE TABLE IF NOT EXISTS os (
                 id SERIAL PRIMARY KEY,
-                os_number TEXT,
-                client TEXT,
-                phone TEXT,
-                item TEXT,
-                reported_defect TEXT,
-                date TEXT,
-                deadline TEXT,
-                status TEXT,
-                labor_cost REAL,
-                parts_cost REAL,
-                total REAL,
-                paid REAL,
-                executed_service TEXT,
-                warranty_term TEXT,
-                checklist_json TEXT
+                os_number TEXT, client TEXT, phone TEXT, item TEXT, reported_defect TEXT,
+                date TEXT, deadline TEXT, status TEXT, labor_cost REAL, parts_cost REAL,
+                total REAL, paid REAL, executed_service TEXT, warranty_term TEXT, checklist_json TEXT
             );
 
-            CREATE TABLE IF NOT EXISTS pedidos (
+            CREATE TABLE IF NOT EXISTS pedidos_novo (
                 id SERIAL PRIMARY KEY,
                 client TEXT,
                 product TEXT,
@@ -55,18 +39,18 @@ async function initDB() {
                 date TEXT
             );
         `);
-        console.log("Banco PostgreSQL conectado e tabelas criadas/verificadas com sucesso!");
+        console.log("Banco PostgreSQL conectado e tabelas criadas com sucesso!");
     } catch (err) {
-        console.error("Erro ao inicializar o banco PostgreSQL:", err);
+        console.error("Erro ao inicializar o banco:", err);
     }
 }
 initDB();
 
-// --- ROTAS DE ORDENS DE SERVIÇO (OS) ---
+// --- ROTAS OS ---
 app.get('/api/os', async (req, res) => {
     try {
         const result = await pool.query('SELECT * FROM os ORDER BY id DESC');
-        const formatted = result.rows.map(row => ({
+        res.json(result.rows.map(row => ({
             id: row.id.toString(),
             osNumber: row.os_number,
             client: row.client,
@@ -83,51 +67,27 @@ app.get('/api/os', async (req, res) => {
             executedService: row.executed_service,
             warrantyTerm: row.warranty_term,
             checklistTextos: row.checklist_json ? JSON.parse(row.checklist_json) : []
-        }));
-        res.json(formatted);
+        })));
     } catch (err) {
-        console.error(err);
-        res.status(500).json({ error: "Erro ao buscar ordens de serviço" });
+        res.status(500).json({ error: "Erro ao buscar OS" });
     }
 });
 
 app.post('/api/os', async (req, res) => {
     const data = req.body;
     try {
-        const checklistStr = data.checklistTextos ? JSON.stringify(data.checklistTextos) : '[]';
-        
+        const chk = data.checklistTextos ? JSON.stringify(data.checklistTextos) : '[]';
         if (data.id) {
-            await pool.query(`
-                UPDATE os SET 
-                    os_number = $1, client = $2, phone = $3, item = $4, reported_defect = $5, 
-                    date = $6, deadline = $7, status = $8, labor_cost = $9, parts_cost = $10, 
-                    total = $11, paid = $12, executed_service = $13, warranty_term = $14, checklist_json = $15
-                WHERE id = $16
-            `, [
-                data.osNumber, data.client, data.phone, data.item, data.reportedDefect,
-                data.date, data.deadline, data.status, data.laborCost || 0, data.partsCost || 0,
-                data.total || 0, data.paid || 0, data.executedService, data.warrantyTerm,
-                checklistStr, parseInt(data.id)
-            ]);
+            await pool.query(`UPDATE os SET os_number=$1, client=$2, phone=$3, item=$4, reported_defect=$5, date=$6, deadline=$7, status=$8, labor_cost=$9, parts_cost=$10, total=$11, paid=$12, executed_service=$13, warranty_term=$14, checklist_json=$15 WHERE id=$16`,
+            [data.osNumber, data.client, data.phone, data.item, data.reportedDefect, data.date, data.deadline, data.status, data.laborCost||0, data.partsCost||0, data.total||0, data.paid||0, data.executedService, data.warrantyTerm, chk, parseInt(data.id)]);
             res.json({ success: true, id: data.id });
         } else {
-            const result = await pool.query(`
-                INSERT INTO os (
-                    os_number, client, phone, item, reported_defect, date, deadline, 
-                    status, labor_cost, parts_cost, total, paid, executed_service, warranty_term, checklist_json
-                ) VALUES ($1, $2, $3, $4, $5, $6, $7, $8, $9, $10, $11, $12, $13, $14, $15)
-                RETURNING id;
-            `, [
-                data.osNumber, data.client, data.phone, data.item, data.reportedDefect,
-                data.date, data.deadline, data.status || 'Em Andamento', data.laborCost || 0, 
-                data.partsCost || 0, data.total || 0, data.paid || 0, data.executedService, 
-                data.warrantyTerm, checklistStr
-            ]);
+            const result = await pool.query(`INSERT INTO os (os_number, client, phone, item, reported_defect, date, deadline, status, labor_cost, parts_cost, total, paid, executed_service, warranty_term, checklist_json) VALUES ($1,$2,$3,$4,$5,$6,$7,$8,$9,$10,$11,$12,$13,$14,$15) RETURNING id;`,
+            [data.osNumber, data.client, data.phone, data.item, data.reportedDefect, data.date, data.deadline, data.status||'Em Andamento', data.laborCost||0, data.partsCost||0, data.total||0, data.paid||0, data.executedService, data.warrantyTerm, chk]);
             res.json({ success: true, id: result.rows[0].id.toString() });
         }
     } catch (err) {
-        console.error("Erro OS:", err);
-        res.status(500).json({ error: "Erro ao salvar ordem de serviço" });
+        res.status(500).json({ error: "Erro ao salvar OS" });
     }
 });
 
@@ -136,16 +96,15 @@ app.delete('/api/os/:id', async (req, res) => {
         await pool.query('DELETE FROM os WHERE id = $1', [parseInt(req.params.id)]);
         res.json({ success: true });
     } catch (err) {
-        console.error(err);
-        res.status(500).json({ error: "Erro ao excluir ordem de serviço" });
+        res.status(500).json({ error: "Erro ao excluir OS" });
     }
 });
 
-// --- ROTAS DE PEDIDOS / PRODUÇÃO ---
+// --- ROTAS PEDIDOS (APONTANDO PARA pedidos_novo) ---
 app.get('/api/pedidos', async (req, res) => {
     try {
-        const result = await pool.query('SELECT * FROM pedidos ORDER BY id DESC');
-        const formatted = result.rows.map(row => ({
+        const result = await pool.query('SELECT * FROM pedidos_novo ORDER BY id DESC');
+        res.json(result.rows.map(row => ({
             id: row.id.toString(),
             client: row.client,
             product: row.product,
@@ -158,10 +117,8 @@ app.get('/api/pedidos', async (req, res) => {
             paymentMethod: row.payment_method,
             notes: row.notes,
             date: row.date
-        }));
-        res.json(formatted);
+        })));
     } catch (err) {
-        console.error(err);
         res.status(500).json({ error: "Erro ao buscar pedidos" });
     }
 });
@@ -169,7 +126,6 @@ app.get('/api/pedidos', async (req, res) => {
 app.post('/api/pedidos', async (req, res) => {
     const data = req.body;
     try {
-        // Mapeia flexivelmente caso o front envie com nomenclaturas alternativas
         const client = data.client || '';
         const product = data.product || data.item || '';
         const statusProd = data.statusProd || data.status_prod || 'Em produção';
@@ -183,45 +139,27 @@ app.post('/api/pedidos', async (req, res) => {
         const date = data.date || new Date().toISOString().split('T')[0];
 
         if (data.id) {
-            await pool.query(`
-                UPDATE pedidos SET 
-                    client = $1, product = $2, status_prod = $3, status_fin = $4, maker = $5, 
-                    total = $6, cost = $7, paid = $8, payment_method = $9, notes = $10, date = $11
-                WHERE id = $12
-            `, [
-                client, product, statusProd, statusFin, maker,
-                total, cost, paid, paymentMethod,
-                notes, date, parseInt(data.id)
-            ]);
+            await pool.query(`UPDATE pedidos_novo SET client=$1, product=$2, status_prod=$3, status_fin=$4, maker=$5, total=$6, cost=$7, paid=$8, payment_method=$9, notes=$10, date=$11 WHERE id=$12`,
+            [client, product, statusProd, statusFin, maker, total, cost, paid, paymentMethod, notes, date, parseInt(data.id)]);
             res.json({ success: true, id: data.id });
         } else {
-            const result = await pool.query(`
-                INSERT INTO pedidos (
-                    client, product, status_prod, status_fin, maker, total, cost, paid, payment_method, notes, date
-                ) VALUES ($1, $2, $3, $4, $5, $6, $7, $8, $9, $10, $11)
-                RETURNING id;
-            `, [
-                client, product, statusProd, statusFin, maker,
-                total, cost, paid, paymentMethod, notes, date
-            ]);
+            const result = await pool.query(`INSERT INTO pedidos_novo (client, product, status_prod, status_fin, maker, total, cost, paid, payment_method, notes, date) VALUES ($1,$2,$3,$4,$5,$6,$7,$8,$9,$10,$11) RETURNING id;`,
+            [client, product, statusProd, statusFin, maker, total, cost, paid, paymentMethod, notes, date]);
             res.json({ success: true, id: result.rows[0].id.toString() });
         }
     } catch (err) {
-        console.error("Erro detalhado ao salvar pedido:", err);
+        console.error("Erro detalhado pedido:", err);
         res.status(500).json({ error: "Erro ao salvar pedido no servidor." });
     }
 });
 
 app.delete('/api/pedidos/:id', async (req, res) => {
     try {
-        await pool.query('DELETE FROM pedidos WHERE id = $1', [parseInt(req.params.id)]);
+        await pool.query('DELETE FROM pedidos_novo WHERE id = $1', [parseInt(req.params.id)]);
         res.json({ success: true });
     } catch (err) {
-        console.error(err);
         res.status(500).json({ error: "Erro ao excluir pedido" });
     }
 });
 
-app.listen(PORT, () => {
-    console.log(`Servidor 3D Primus rodando na porta ${PORT} com PostgreSQL`);
-});
+app.listen(PORT, () => console.log(`Servidor rodando na porta ${PORT} com PostgreSQL`));
