@@ -1,98 +1,135 @@
 const express = require('express');
-const sqlite3 = require('sqlite3').verbose();
-const cors = require('cors');
+const { Pool } = require('pg');
 const path = require('path');
 
 const app = express();
+const PORT = process.env.PORT || 3000;
+
 app.use(express.json());
-app.use(cors());
+app.use(express.urlencoded({ extended: true }));
+app.use(express.static(__dirname));
 
-app.use(express.static(path.join(__dirname)));
-
-const dbFile = path.join(__dirname, 'primus_database.sqlite');
-const db = new sqlite3.Database(dbFile, (err) => {
-    if (err) {
-        console.error('Erro ao abrir o banco de dados', err.message);
-    } else {
-        console.log('Conectado ao banco de dados SQLite com sucesso.');
+// Conexão com o PostgreSQL do Render
+const pool = new Pool({
+    connectionString: "postgresql://db_3d_primus_db_user:95zbjxWGXPv9xoZML2Sd2KchsNxKEcVJ@dpg-dbah27ijnfac73fmgg20-a/db_3d_primus_db",
+    ssl: {
+        rejectUnauthorized: false
     }
 });
 
-db.serialize(() => {
-    db.run(`CREATE TABLE IF NOT EXISTS os (
-        id TEXT PRIMARY KEY, osNumber TEXT, client TEXT, phone TEXT, eqType TEXT, 
-        eqBrand TEXT, eqModel TEXT, eqSerial TEXT, item TEXT, checklistObj TEXT, 
-        checklistTextos TEXT, chkCustomText TEXT, tech TEXT, date TEXT, deadline TEXT, 
-        status TEXT, reportedDefect TEXT, diagnostic TEXT, executedService TEXT, 
-        laborCost REAL, partsCost REAL, total REAL, paid REAL, paymentMethod TEXT, notes TEXT, warrantyTerm TEXT
-    )`);
+// Inicialização das tabelas no PostgreSQL
+async function initDB() {
+    try {
+        await pool.query(`
+            CREATE TABLE IF NOT EXISTS os (
+                id SERIAL PRIMARY KEY,
+                os_number TEXT,
+                client TEXT,
+                phone TEXT,
+                item TEXT,
+                reported_defect TEXT,
+                date TEXT,
+                deadline TEXT,
+                status TEXT,
+                labor_cost REAL,
+                parts_cost REAL,
+                total REAL,
+                paid REAL,
+                executed_service TEXT,
+                warranty_term TEXT,
+                checklist_json TEXT
+            );
+        `);
+        console.log("Banco PostgreSQL conectado e tabelas verificadas com sucesso!");
+    } catch (err) {
+        console.error("Erro ao inicializar o banco PostgreSQL:", err);
+    }
+}
+initDB();
 
-    db.run(`CREATE TABLE IF NOT EXISTS printers (
-        id TEXT PRIMARY KEY, model TEXT, serial TEXT, supplier TEXT, client TEXT, date TEXT, initialHours INTEGER, notes TEXT, history TEXT
-    )`);
+// --- ROTAS DA API (OS) ---
 
-    db.run(`CREATE TABLE IF NOT EXISTS orders (
-        id TEXT PRIMARY KEY, osNumber TEXT, client TEXT, phone TEXT, product TEXT, 
-        startDate TEXT, deadline TEXT, status TEXT, financialStatus TEXT, responsible TEXT, 
-        total REAL, cost REAL, paid REAL, paymentMethod TEXT, notes TEXT
-    )`);
-});
-
-// --- API OS ---
-app.get('/api/os', (req, res) => {
-    db.all("SELECT * FROM os", [], (err, rows) => {
-        if (err) return res.status(500).json({ error: err.message });
-        rows.forEach(r => {
-            try { r.checklistObj = JSON.parse(r.checklistObj || '{}'); } catch(e){r.checklistObj={};}
-            try { r.checklistTextos = JSON.parse(r.checklistTextos || '[]'); } catch(e){r.checklistTextos=[];}
-        });
-        res.json(rows);
-    });
-});
-app.post('/api/os', (req, res) => {
-    const o = req.body;
-    const q = `INSERT OR REPLACE INTO os VALUES (?,?,?,?,?,?,?,?,?,?,?,?,?,?,?,?,?,?,?,?,?,?,?,?,?,?)`;
-    const p = [o.id, o.osNumber, o.client, o.phone, o.eqType, o.eqBrand, o.eqModel, o.eqSerial, o.item, JSON.stringify(o.checklistObj||{}), JSON.stringify(o.checklistTextos||[]), o.chkCustomText, o.tech, o.date, o.deadline, o.status, o.reportedDefect, o.diagnostic, o.executedService, o.laborCost, o.partsCost, o.total, o.paid, o.paymentMethod, o.notes, o.warrantyTerm];
-    db.run(q, p, err => err ? res.status(500).json({ error: err.message }) : res.json({ success: true }));
-});
-app.delete('/api/os/:id', (req, res) => {
-    db.run("DELETE FROM os WHERE id = ?", req.params.id, err => err ? res.status(500).json({ error: err.message }) : res.json({ success: true }));
-});
-
-// --- API IMPRESSORAS ---
-app.get('/api/printers', (req, res) => {
-    db.all("SELECT * FROM printers", [], (err, rows) => {
-        if (err) return res.status(500).json({ error: err.message });
-        rows.forEach(r => { try { r.history = JSON.parse(r.history || '[]'); } catch(e){r.history=[];} });
-        res.json(rows);
-    });
-});
-app.post('/api/printers', (req, res) => {
-    const p = req.body;
-    const q = `INSERT OR REPLACE INTO printers VALUES (?,?,?,?,?,?,?,?,?)`;
-    const params = [p.id, p.model, p.serial, p.supplier, p.client, p.date, p.initialHours, p.notes, JSON.stringify(p.history||[])];
-    db.run(q, params, err => err ? res.status(500).json({ error: err.message }) : res.json({ success: true }));
-});
-app.delete('/api/printers/:id', (req, res) => {
-    db.run("DELETE FROM printers WHERE id = ?", req.params.id, err => err ? res.status(500).json({ error: err.message }) : res.json({ success: true }));
-});
-
-// --- API PEDIDOS DE PRODUÇÃO ---
-app.get('/api/orders', (req, res) => {
-    db.all("SELECT * FROM orders", [], (err, rows) => {
-        if (err) return res.status(500).json({ error: err.message });
-        res.json(rows);
-    });
-});
-app.post('/api/orders', (req, res) => {
-    const o = req.body;
-    const q = `INSERT OR REPLACE INTO orders VALUES (?,?,?,?,?,?,?,?,?,?,?,?,?,?,?)`;
-    const params = [o.id, o.osNumber, o.client, o.phone, o.product, o.startDate, o.deadline, o.status, o.financialStatus, o.responsible, o.total, o.cost, o.paid, o.paymentMethod, o.notes];
-    db.run(q, params, err => err ? res.status(500).json({ error: err.message }) : res.json({ success: true }));
-});
-app.delete('/api/orders/:id', (req, res) => {
-    db.run("DELETE FROM orders WHERE id = ?", req.params.id, err => err ? res.status(500).json({ error: err.message }) : res.json({ success: true }));
+// Listar todas as OS
+app.get('/api/os', async (req, res) => {
+    try {
+        const result = await pool.query('SELECT * FROM os ORDER BY id DESC');
+        const formatted = result.rows.map(row => ({
+            id: row.id.toString(),
+            osNumber: row.os_number,
+            client: row.client,
+            phone: row.phone,
+            item: row.item,
+            reportedDefect: row.reported_defect,
+            date: row.date,
+            deadline: row.deadline,
+            status: row.status,
+            laborCost: row.labor_cost,
+            partsCost: row.parts_cost,
+            total: row.total,
+            paid: row.paid,
+            executedService: row.executed_service,
+            warrantyTerm: row.warranty_term,
+            checklistTextos: row.checklist_json ? JSON.parse(row.checklist_json) : []
+        }));
+        res.json(formatted);
+    } catch (err) {
+        console.error(err);
+        res.status(500).json({ error: "Erro ao buscar ordens de serviço" });
+    }
 });
 
-const PORT = process.env.PORT || 3000;
-app.listen(PORT, () => console.log(`Servidor rodando na porta ${PORT}`));
+// Criar ou Atualizar OS
+app.post('/api/os', async (req, res) => {
+    const data = req.body;
+    try {
+        const checklistStr = data.checklistTextos ? JSON.stringify(data.checklistTextos) : '[]';
+        
+        if (data.id) {
+            await pool.query(`
+                UPDATE os SET 
+                    os_number = $1, client = $2, phone = $3, item = $4, reported_defect = $5, 
+                    date = $6, deadline = $7, status = $8, labor_cost = $9, parts_cost = $10, 
+                    total = $11, paid = $12, executed_service = $13, warranty_term = $14, checklist_json = $15
+                WHERE id = $16
+            `, [
+                data.osNumber, data.client, data.phone, data.item, data.reportedDefect,
+                data.date, data.deadline, data.status, data.laborCost || 0, data.partsCost || 0,
+                data.total || 0, data.paid || 0, data.executedService, data.warrantyTerm,
+                checklistStr, parseInt(data.id)
+            ]);
+            res.json({ success: true, id: data.id });
+        } else {
+            const result = await pool.query(`
+                INSERT INTO os (
+                    os_number, client, phone, item, reported_defect, date, deadline, 
+                    status, labor_cost, parts_cost, total, paid, executed_service, warranty_term, checklist_json
+                ) VALUES ($1, $2, $3, $4, $5, $6, $7, $8, $9, $10, $11, $12, $13, $14, $15)
+                RETURNING id;
+            `, [
+                data.osNumber, data.client, data.phone, data.item, data.reportedDefect,
+                data.date, data.deadline, data.status || 'Em Andamento', data.laborCost || 0, 
+                data.partsCost || 0, data.total || 0, data.paid || 0, data.executedService, 
+                data.warrantyTerm, checklistStr
+            ]);
+            res.json({ success: true, id: result.rows[0].id.toString() });
+        }
+    } catch (err) {
+        console.error(err);
+        res.status(500).json({ error: "Erro ao salvar ordem de serviço" });
+    }
+});
+
+// Excluir OS
+app.delete('/api/os/:id', async (req, res) => {
+    try {
+        await pool.query('DELETE FROM os WHERE id = $1', [parseInt(req.params.id)]);
+        res.json({ success: true });
+    } catch (err) {
+        console.error(err);
+        res.status(500).json({ error: "Erro ao excluir ordem de serviço" });
+    }
+});
+
+app.listen(PORT, () => {
+    console.log(`Servidor 3D Primus rodando na porta ${PORT} com PostgreSQL`);
+});
