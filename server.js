@@ -26,17 +26,8 @@ async function initDB() {
 
             CREATE TABLE IF NOT EXISTS pedidos_novo (
                 id SERIAL PRIMARY KEY,
-                client TEXT,
-                product TEXT,
-                status_prod TEXT,
-                status_fin TEXT,
-                maker TEXT,
-                total REAL,
-                cost REAL,
-                paid REAL,
-                payment_method TEXT,
-                notes TEXT,
-                date TEXT
+                client TEXT, product TEXT, status_prod TEXT, status_fin TEXT,
+                maker TEXT, total REAL, cost REAL, paid REAL, payment_method TEXT, notes TEXT, date TEXT
             );
         `);
         console.log("Banco PostgreSQL conectado e tabelas criadas com sucesso!");
@@ -100,8 +91,8 @@ app.delete('/api/os/:id', async (req, res) => {
     }
 });
 
-// --- ROTAS PEDIDOS (APONTANDO PARA pedidos_novo) ---
-app.get('/api/pedidos', async (req, res) => {
+// --- FUNÇÃO AUXILIAR PARA SALVAR/BUSCAR PEDIDOS (SUPORTA /api/pedidos E /api/orders) ---
+async function handleGetPedidos(req, res) {
     try {
         const result = await pool.query('SELECT * FROM pedidos_novo ORDER BY id DESC');
         res.json(result.rows.map(row => ({
@@ -121,9 +112,9 @@ app.get('/api/pedidos', async (req, res) => {
     } catch (err) {
         res.status(500).json({ error: "Erro ao buscar pedidos" });
     }
-});
+}
 
-app.post('/api/pedidos', async (req, res) => {
+async function handlePostPedidos(req, res) {
     const data = req.body;
     try {
         const client = data.client || '';
@@ -151,15 +142,24 @@ app.post('/api/pedidos', async (req, res) => {
         console.error("Erro detalhado pedido:", err);
         res.status(500).json({ error: "Erro ao salvar pedido no servidor." });
     }
-});
+}
 
-app.delete('/api/pedidos/:id', async (req, res) => {
+async function handleDeletePedidos(req, res) {
     try {
         await pool.query('DELETE FROM pedidos_novo WHERE id = $1', [parseInt(req.params.id)]);
         res.json({ success: true });
     } catch (err) {
         res.status(500).json({ error: "Erro ao excluir pedido" });
     }
-});
+}
+
+// Registra as rotas tanto em /api/pedidos quanto em /api/orders para evitar 404
+app.get('/api/pedidos', handleGetPedidos);
+app.post('/api/pedidos', handlePostPedidos);
+app.delete('/api/pedidos/:id', handleDeletePedidos);
+
+app.get('/api/orders', handleGetPedidos);
+app.post('/api/orders', handlePostPedidos);
+app.delete('/api/orders/:id', handleDeletePedidos);
 
 app.listen(PORT, () => console.log(`Servidor rodando na porta ${PORT} com PostgreSQL`));
