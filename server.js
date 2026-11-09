@@ -126,7 +126,7 @@ app.post('/api/os', async (req, res) => {
             res.json({ success: true, id: result.rows[0].id.toString() });
         }
     } catch (err) {
-        console.error(err);
+        console.error("Erro OS:", err);
         res.status(500).json({ error: "Erro ao salvar ordem de serviço" });
     }
 });
@@ -169,6 +169,19 @@ app.get('/api/pedidos', async (req, res) => {
 app.post('/api/pedidos', async (req, res) => {
     const data = req.body;
     try {
+        // Mapeia flexivelmente caso o front envie com nomenclaturas alternativas
+        const client = data.client || '';
+        const product = data.product || data.item || '';
+        const statusProd = data.statusProd || data.status_prod || 'Em produção';
+        const statusFin = data.statusFin || data.status_fin || 'Pendente';
+        const maker = data.maker || '';
+        const total = parseFloat(data.total) || 0;
+        const cost = parseFloat(data.cost) || parseFloat(data.laborCost) || 0;
+        const paid = parseFloat(data.paid) || 0;
+        const paymentMethod = data.paymentMethod || data.payment_method || '';
+        const notes = data.notes || '';
+        const date = data.date || new Date().toISOString().split('T')[0];
+
         if (data.id) {
             await pool.query(`
                 UPDATE pedidos SET 
@@ -176,9 +189,9 @@ app.post('/api/pedidos', async (req, res) => {
                     total = $6, cost = $7, paid = $8, payment_method = $9, notes = $10, date = $11
                 WHERE id = $12
             `, [
-                data.client, data.product, data.statusProd, data.statusFin, data.maker,
-                data.total || 0, data.cost || 0, data.paid || 0, data.paymentMethod,
-                data.notes, data.date, parseInt(data.id)
+                client, product, statusProd, statusFin, maker,
+                total, cost, paid, paymentMethod,
+                notes, date, parseInt(data.id)
             ]);
             res.json({ success: true, id: data.id });
         } else {
@@ -188,15 +201,14 @@ app.post('/api/pedidos', async (req, res) => {
                 ) VALUES ($1, $2, $3, $4, $5, $6, $7, $8, $9, $10, $11)
                 RETURNING id;
             `, [
-                data.client, data.product, data.statusProd || 'Em produção', data.statusFin || 'Pendente',
-                data.maker, data.total || 0, data.cost || 0, data.paid || 0,
-                data.paymentMethod, data.notes, data.date
+                client, product, statusProd, statusFin, maker,
+                total, cost, paid, paymentMethod, notes, date
             ]);
             res.json({ success: true, id: result.rows[0].id.toString() });
         }
     } catch (err) {
-        console.error(err);
-        res.status(500).json({ error: "Erro ao salvar pedido" });
+        console.error("Erro detalhado ao salvar pedido:", err);
+        res.status(500).json({ error: "Erro ao salvar pedido no servidor." });
     }
 });
 
