@@ -206,6 +206,10 @@ function formatDeadline(deadlineStr, statusProd) {
         return `<span class="deadline-alert deadline-red">${Math.abs(diffDays)}d atrasado</span><small style="color:var(--red);">(${dataFormatada})</small>`;
     } else if (diffDays === 0) {
         return `<span class="deadline-alert deadline-orange">Hoje</span><small>(${dataFormatada})</small>`;
+    } else if (diffDays === 1) {
+        return `<span class="deadline-alert deadline-orange">Falta 1 dia</span><small>(${dataFormatada})</small>`;
+    } else if (diffDays === 2) {
+        return `<span class="deadline-alert deadline-orange">Falta 2 dias</span><small>(${dataFormatada})</small>`;
     } else {
         return dataFormatada;
     }
@@ -275,35 +279,83 @@ function printSelectedType(type){
 
     let chkHtml = '';
     if(o.checklistTextos && Array.isArray(o.checklistTextos)){
-        chkHtml = o.checklistTextos.map(item => `<div>• ${escapeHtml(item)}</div>`).join('');
+        chkHtml = o.checklistTextos.map(item => `<div style="display:inline-block; width:48%; margin-bottom:4px; font-size:11px;">• ${escapeHtml(item)}</div>`).join('');
+    } else if (o.checklistObj && typeof o.checklistObj === 'object') {
+        let itemsArr = [];
+        for (let [k, v] of Object.entries(o.checklistObj)) {
+            let nomeBonito = k.replace('chk_', '').replace(/_/g, ' ');
+            let sinal = v === 'V' ? '[V] OK' : '[X] Defeito';
+            itemsArr.push(`<div style="display:inline-block; width:48%; margin-bottom:4px; font-size:11px;">• ${escapeHtml(nomeBonito)}: <strong>${sinal}</strong></div>`);
+        }
+        chkHtml = itemsArr.join('');
     }
 
     let printContainer = $('printArea');
     if(printContainer){
-        printContainer.innerHTML = `
-            <div style="border: 2px solid #333; padding: 15px; border-radius: 8px; margin-bottom: 20px;">
-                <div style="display: flex; justify-content: space-between; align-items: center; border-bottom: 2px solid #333; padding-bottom: 10px; margin-bottom: 10px;">
-                    <div>
-                        <h2 style="margin:0; font-size: 18px; color: #10243a;">3D PRIMUS - Ordem de Serviço #${escapeHtml(o.osNumber)}</h2>
-                        <small>Do Conceito à Criação • Tel: (99) 99817-8035 • Rua Luís Domingues, nº 1158, Centro</small>
+        if(type === 'entrada'){
+            let viaHtml = (tituloVia) => `
+                <div style="border: 1px solid #000; padding: 12px; border-radius: 6px; font-family: Arial, sans-serif; font-size: 11.5px; color: #000; margin-bottom: 15px; background: #fff;">
+                    <div style="display: flex; justify-content: space-between; align-items: center; border-bottom: 2px solid #000; padding-bottom: 6px; margin-bottom: 8px;">
+                        <div>
+                            <strong style="font-size: 15px; color: #000;">3D PRIMUS</strong><br>
+                            <span style="font-size: 10px;">Rua Luís Domingues, nº 1158 - Centro • Tel: (99) 98178-0355</span>
+                        </div>
+                        <div style="text-align: right;">
+                            <span style="font-size: 11px; background: #eee; padding: 2px 6px; border: 1px solid #000; font-weight: bold;">${tituloVia}</span><br>
+                            <span style="font-size: 11px; font-weight: bold; margin-top:2px; display:inline-block;">OS: #${escapeHtml(o.osNumber)} | Abertura: ${o.date ? new Date(o.date+'T12:00:00').toLocaleDateString('pt-BR') : '—'}</span>
+                        </div>
                     </div>
-                    <div style="text-align: right; font-size: 12px;">
-                        <div>Abertura: ${o.date ? new Date(o.date+'T12:00:00').toLocaleDateString('pt-BR') : '—'}</div>
-                        <div>Previsão: ${o.deadline ? new Date(o.deadline+'T12:00:00').toLocaleDateString('pt-BR') : '—'}</div>
+                    <div style="margin-bottom: 6px;"><strong>Cliente:</strong> ${escapeHtml(o.client)} — <strong>Tel:</strong> ${escapeHtml(o.phone || 'Não informado')}</div>
+                    <div style="margin-bottom: 6px;"><strong>Equipamento:</strong> ${escapeHtml(o.item || o.eqType)} | <strong>Marca/Modelo:</strong> ${escapeHtml(o.eqBrand)} ${escapeHtml(o.eqModel)} | <strong>S/N:</strong> ${escapeHtml(o.eqSerial || 'Não informado')}</div>
+                    <div style="margin-bottom: 6px;"><strong>Defeito Relatado:</strong> ${escapeHtml(o.reportedDefect)}</div>
+                    <div style="margin-bottom: 6px;"><strong>Checklist de Entrada:</strong><div style="margin-top: 3px; border: 1px solid #ccc; padding: 6px; background: #fafafa; border-radius: 4px;">${chkHtml || 'Nenhum item marcado'}</div></div>
+                    ${o.chkCustomText ? `<div style="margin-bottom: 6px;"><strong>Outros Acessórios/Obs:</strong> ${escapeHtml(o.chkCustomText)}</div>` : ''}
+                    <div style="display: grid; grid-template-columns: repeat(4, 1fr); gap: 6px; border-top: 1px solid #000; padding-top: 6px; margin-top: 6px; font-size: 11px;">
+                        <div>Mão de Obra: <strong>${money(o.laborCost)}</strong></div>
+                        <div>Peças: <strong>${money(o.partsCost)}</strong></div>
+                        <div>Total: <strong style="font-size:12px;">${money(o.total)}</strong></div>
+                        <div>Previsão: <strong>${o.deadline ? new Date(o.deadline+'T12:00:00').toLocaleDateString('pt-BR') : '—'}</strong></div>
+                    </div>
+                    <div style="display: flex; justify-content: space-between; margin-top: 25px; padding-top: 10px; border-top: 1px dashed #666;">
+                        <div style="text-align: center; width: 45%;"><div style="border-top: 1px solid #000; margin-bottom: 3px;"></div>Assinatura da Loja</div>
+                        <div style="text-align: center; width: 45%;"><div style="border-top: 1px solid #000; margin-bottom: 3px;"></div>Assinatura do Cliente</div>
                     </div>
                 </div>
-                <div style="margin-bottom: 8px;"><strong>Cliente:</strong> ${escapeHtml(o.client)} (${escapeHtml(o.phone || 'Sem telefone')})</div>
-                <div style="margin-bottom: 8px;"><strong>Equipamento:</strong> ${escapeHtml(o.item || o.eqType)} | <strong>Marca/Modelo:</strong> ${escapeHtml(o.eqBrand)} ${escapeHtml(o.eqModel)} | <strong>S/N:</strong> ${escapeHtml(o.eqSerial || 'Não informado')}</div>
-                <div style="margin-bottom: 8px;"><strong>Defeito Relatado:</strong> ${escapeHtml(o.reportedDefect)}</div>
-                <div style="margin-bottom: 8px;"><strong>Diagnóstico / Serviço:</strong> ${escapeHtml(o.diagnostic || 'Aguardando')} / ${escapeHtml(o.executedService || 'Aguardando')}</div>
-                <div style="margin-bottom: 8px;"><strong>Checklist / Acessórios:</strong><div style="display:grid; grid-template-columns: 1fr 1fr; gap: 4px; margin-top:4px;">${chkHtml || 'Nenhum item marcado'}</div></div>
-                <div style="display: flex; justify-content: space-between; border-top: 1px solid #ccc; padding-top: 8px; margin-top: 10px; font-weight: bold;">
-                    <div>Status: ${escapeHtml(o.status)}</div>
-                    <div>Valor Total: ${money(o.total)}</div>
+            `;
+            printContainer.innerHTML = viaHtml('VIA 1: VIA DA LOJA (CONTROLE INTERNO)') + viaHtml('VIA 2: VIA DO CLIENTE (COMPROVANTE DE ENTRADA)');
+        } else {
+            printContainer.innerHTML = `
+                <div style="border: 2px solid #000; padding: 15px; border-radius: 6px; font-family: Arial, sans-serif; font-size: 12px; color: #000; background: #fff;">
+                    <div style="display: flex; justify-content: space-between; align-items: center; border-bottom: 2px solid #000; padding-bottom: 8px; margin-bottom: 10px;">
+                        <div>
+                            <strong style="font-size: 16px; color: #000;">3D PRIMUS</strong><br>
+                            <span style="font-size: 10.5px;">Rua Luís Domingues, nº 1158 - Centro • Tel: (99) 98178-0355</span>
+                        </div>
+                        <div style="text-align: right;">
+                            <span style="font-size: 11px; background: #eee; padding: 2px 6px; border: 1px solid #000; font-weight: bold;">TERMO DE GARANTIA E SAÍDA</span><br>
+                            <span style="font-size: 11.5px; font-weight: bold; margin-top:3px; display:inline-block;">OS: #${escapeHtml(o.osNumber)}</span>
+                        </div>
+                    </div>
+                    <div style="margin-bottom: 8px;"><strong>Cliente:</strong> ${escapeHtml(o.client)} (${escapeHtml(o.phone || 'Sem telefone')})</div>
+                    <div style="margin-bottom: 8px;"><strong>Equipamento:</strong> ${escapeHtml(o.item || o.eqType)} | <strong>Modelo:</strong> ${escapeHtml(o.eqBrand)} ${escapeHtml(o.eqModel)}</div>
+                    <div style="margin-bottom: 8px;"><strong>Defeito Relatado:</strong> ${escapeHtml(o.reportedDefect)}</div>
+                    <div style="margin-bottom: 8px;"><strong>Serviço Executado:</strong> ${escapeHtml(o.executedService || 'Reparo concluído')}</div>
+                    <div style="display: grid; grid-template-columns: repeat(3, 1fr); gap: 8px; background: #f5f5f5; padding: 8px; border-radius: 4px; margin-bottom: 10px; font-size: 11.5px;">
+                        <div>Total: <strong>${money(o.total)}</strong></div>
+                        <div>Pago: <strong style="color:green;">${money(o.paid)}</strong></div>
+                        <div>Saldo a Pagar: <strong style="color:red;">${money((+o.total||0) - (+o.paid||0))}</strong></div>
+                    </div>
+                    <div style="font-size: 10px; border-top: 1px solid #ccc; padding-top: 8px; margin-top: 8px; line-height: 1.4;">
+                        <strong>Termos de Garantia:</strong><br>
+                        ${escapeHtml(o.warrantyTerm || '1. A garantia cobre apenas os defeitos e peças reparadas descritas nesta OS.\n2. Equipamentos não retirados em até 90 dias ficarão sujeitos à taxa de armazenagem.')}
+                    </div>
+                    <div style="display: flex; justify-content: space-between; margin-top: 35px; padding-top: 10px; border-top: 1px solid #000;">
+                        <div style="text-align: center; width: 42%;"><div style="border-top: 1px solid #000; margin-bottom: 3px;"></div>Responsável Técnico (3D Primus)</div>
+                        <div style="text-align: center; width: 42%;"><div style="border-top: 1px solid #000; margin-bottom: 3px;"></div>Assinatura do Cliente (Retirada)</div>
+                    </div>
                 </div>
-                ${type === 'saida' ? `<div style="margin-top:10px; font-size:10px; border-top:1px dashed #666; padding-top:6px;"><strong>Termo de Garantia:</strong> ${escapeHtml(o.warrantyTerm || 'Garantia conforme regras da loja.')}</div>` : ''}
-            </div>
-        `;
+            `;
+        }
     }
     window.print();
 }
