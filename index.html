@@ -69,5 +69,20 @@ p { color: var(--muted); font-size: 14px; margin: 0; }
 
  </div>
 </div>
+
+<script>
+// Proteção por senha simples para a apresentação
+document.addEventListener('DOMContentLoaded', () => {
+    if (sessionStorage.getItem('primus_auth') !== 'true') {
+        let senha = prompt('🔒 Acesso Restrito - 3D PRIMUS\nDigite a senha de acesso:');
+        if (senha === 'primus0809') {
+            sessionStorage.setItem('primus_auth', 'true');
+        } else {
+            alert('Senha incorreta! Acesso negado.');
+            document.body.innerHTML = '<div style="text-align:center; margin-top:35vh; font-family:sans-serif; color:#10243a;"><h2 style="color:#c83c48;">Acesso Negado</h2><p>Recarregue a página para tentar novamente.</p></div>';
+        }
+    }
+});
+</script>
 </body>
 </html>
