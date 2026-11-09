@@ -144,12 +144,7 @@ function updateMakerDropdown() {
     let select = $('filterMaker');
     if(!select) return;
     let currentVal = select.value;
-    
-    // Lista padrão garantida + makers vindos do banco de dados/pedidos
-    let defaultMakers = ["Rafael Castro", "Daniel Nascimento"];
-    let apiMakers = ordersCache.map(o => (o.responsible || '').trim()).filter(Boolean);
-    
-    let makers = [...new Set([...defaultMakers, ...apiMakers])].sort();
+    let makers = [...new Set(ordersCache.map(o => (o.responsible || '').trim()).filter(Boolean))].sort();
     
     select.innerHTML = `<option value="">Maker (Todos)</option>` + 
         makers.map(m => `<option value="${escapeHtml(m)}" ${m === currentVal ? 'selected' : ''}>${escapeHtml(m)}</option>`).join('');
@@ -188,4 +183,16 @@ function renderCommissions() {
         let com = (Number(o.total) || 0) * 0.07;
         return `
         <tr>
-            <td><strong>#${escapeHtml(o.
+            <td><strong>#${escapeHtml(o.osNumber || '0000')}</strong><small style="color:var(--muted)">${escapeHtml(o.product)}</small></td>
+            <td>${escapeHtml(o.client)}</td>
+            <td><span style="font-weight:700; color:var(--navy);">${escapeHtml(o.responsible || 'Rafael')}</span></td>
+            <td><strong>${money(o.total)}</strong></td>
+            <td><strong style="color:var(--green)">${money(com)}</strong></td>
+        </tr>`;
+    }).join('') : `<tr><td colspan="5" class="empty">Nenhum pedido encontrado para os filtros selecionados.</td></tr>`;
+}
+
+document.addEventListener('DOMContentLoaded', loadCommissionsData);
+</script>
+</body>
+</html>
