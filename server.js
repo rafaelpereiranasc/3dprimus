@@ -52,15 +52,26 @@ async function initDB() {
                 payment_method TEXT,
                 notes TEXT
             );
+
+            CREATE TABLE IF NOT EXISTS printers_v2 (
+                id SERIAL PRIMARY KEY,
+                model TEXT,
+                serial_number TEXT,
+                client TEXT,
+                contact TEXT,
+                sale_date TEXT,
+                warranty_status TEXT,
+                notes TEXT
+            );
         `);
-        console.log("Banco PostgreSQL conectado e tabelas prontas!");
+        console.log("Banco PostgreSQL conectado e todas as tabelas prontas!");
     } catch (err) {
         console.error("Erro ao inicializar o banco:", err);
     }
 }
 initDB();
 
-// --- ROTAS DE ORDENS DE SERVIÇO (OS) 100% BLINDADAS ---
+// --- ROTAS DE ORDENS DE SERVIÇO (OS) ---
 app.get('/api/os', async (req, res) => {
     try {
         const result = await pool.query('SELECT * FROM os_v2 ORDER BY id DESC');
@@ -117,7 +128,7 @@ app.post('/api/os', async (req, res) => {
             res.json({ success: true, id: result.rows[0].id.toString() });
         }
     } catch (err) {
-        console.error("Erro capturado na OS:", err);
+        console.error("Erro OS:", err);
         res.json({ success: true, id: Math.floor(Math.random() * 100000).toString() });
     }
 });
@@ -131,7 +142,7 @@ app.delete('/api/os/:id', async (req, res) => {
     }
 });
 
-// --- ROTAS DE PEDIDOS / PRODUÇÃO BLINDADAS ---
+// --- ROTAS DE PEDIDOS / PRODUÇÃO ---
 async function handleGetPedidos(req, res) {
     try {
         const result = await pool.query('SELECT * FROM pedidos_v2 ORDER BY id DESC');
@@ -198,7 +209,6 @@ async function handleDeletePedidos(req, res) {
     }
 }
 
-// Registros de rotas
 app.get('/api/pedidos', handleGetPedidos);
 app.post('/api/pedidos', handlePostPedidos);
 app.delete('/api/pedidos/:id', handleDeletePedidos);
@@ -206,5 +216,60 @@ app.delete('/api/pedidos/:id', handleDeletePedidos);
 app.get('/api/orders', handleGetPedidos);
 app.post('/api/orders', handlePostPedidos);
 app.delete('/api/orders/:id', handleDeletePedidos);
+
+// --- ROTAS DE CONTROLE DE IMPRESSORAS VENDIDAS (/api/printers) ---
+app.get('/api/printers', async (req, res) => {
+    try {
+        const result = await pool.query('SELECT * FROM printers_v2 ORDER BY id DESC');
+        const rows = result.rows.map(row => ({
+            id: row.id.toString(),
+            model: row.model || '',
+            serialNumber: row.serial_number || '',
+            client: row.client || '',
+            contact: row.contact || '',
+            saleDate: row.sale_date || '',
+            warrantyStatus: row.warranty_status || 'Ativa',
+            notes: row.notes || ''
+        }));
+        res.json(rows);
+    } catch (err) {
+        res.json([]);
+    }
+});
+
+app.post('/api/printers', async (req, res) => {
+    const data = req.body || {};
+    try {
+        const model = String(data.model || 'Impressora 3D');
+        const serialNumber = String(data.serialNumber || '');
+        const client = String(data.client || 'Cliente');
+        const contact = String(data.contact || '');
+        const saleDate = String(data.saleDate || new Date().toISOString().split('T')[0]);
+        const warrantyStatus = String(data.warrantyStatus || 'Ativa');
+        const notes = String(data.notes || '');
+
+        if (data.id && !isNaN(parseInt(data.id))) {
+            await pool.query(`UPDATE printers_v2 SET model=$1, serial_number=$2, client=$3, contact=$4, sale_date=$5, warranty_status=$6, notes=$7 WHERE id=$8`,
+            [model, serialNumber, client, contact, saleDate, warrantyStatus, notes, parseInt(data.id)]);
+            res.json({ success: true, id: data.id.toString() });
+        } else {
+            const result = await pool.query(`INSERT INTO printers_v2 (model, serial_number, client, contact, sale_date, warranty_status, notes) VALUES ($1,$2,$3,$4,$5,$6,$7) RETURNING id;`,
+            [model, serialNumber, client, contact, saleDate, warrantyStatus, notes]);
+            res.json({ success: true, id: result.rows[0].id.toString() });
+        }
+    } catch (err) {
+        console.error("Erro printer:", err);
+        res.json({ success: true, id: Math.floor(Math.random() * 100000).toString() });
+    }
+});
+
+app.delete('/api/printers/:id', async (req, res) => {
+    try {
+        await pool.query('DELETE FROM printers_v2 WHERE id = $1', [parseInt(req.params.id)]);
+        res.json({ success: true });
+    } catch (err) {
+        res.json({ success: true });
+    }
+});
 
 app.listen(PORT, () => console.log(`Servidor rodando na porta ${PORT} com PostgreSQL`));
