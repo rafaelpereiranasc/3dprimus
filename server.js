@@ -100,35 +100,38 @@ app.delete('/api/os/:id', async (req, res) => {
     }
 });
 
-// --- ROTAS DE PEDIDOS / PRODUÇÃO COM MAPEAMENTO TOTAL DE DATAS ---
+// --- ROTAS DE PEDIDOS / PRODUÇÃO COM MAPEAMENTO EXATO PARA O HTML ---
 async function handleGetPedidos(req, res) {
     try {
         const result = await pool.query('SELECT * FROM pedidos_definitivos ORDER BY id DESC');
-        const rows = result.rows.map(row => ({
-            id: row.id.toString(),
-            client: row.client || '',
-            cliente: row.client || '',
-            product: row.product || '',
-            produto: row.product || '',
-            item: row.product || '',
-            statusProd: row.status_prod || 'Em produção',
-            status_prod: row.status_prod || 'Em produção',
-            statusFin: row.status_fin || 'Pendente',
-            status_fin: row.status_fin || 'Pendente',
-            maker: row.maker || '',
-            responsavel: row.maker || '',
-            total: row.total || 0,
-            cost: row.cost || 0,
-            paid: row.paid || 0,
-            paymentMethod: row.payment_method || '',
-            payment_method: row.payment_method || '',
-            notes: row.notes || '',
-            observacoes: row.notes || '',
-            date: row.date || '—',
-            dataInicio: row.date || '—',
-            inicio: row.date || '—',
-            prazo: row.date || '—'
-        }));
+        const rows = result.rows.map(row => {
+            const dataFormatada = row.date || '—';
+            return {
+                id: row.id.toString(),
+                client: row.client || '',
+                cliente: row.client || '',
+                product: row.product || '',
+                produto: row.product || '',
+                item: row.product || '',
+                statusProd: row.status_prod || 'Em produção',
+                status_prod: row.status_prod || 'Em produção',
+                statusFin: row.status_fin || 'Pendente',
+                status_fin: row.status_fin || 'Pendente',
+                maker: row.maker || 'Rafael',
+                responsavel: row.maker || 'Rafael',
+                total: row.total || 0,
+                cost: row.cost || 0,
+                paid: row.paid || 0,
+                paymentMethod: row.payment_method || '',
+                payment_method: row.payment_method || '',
+                notes: row.notes || '',
+                observacoes: row.notes || '',
+                date: dataFormatada,
+                dataInicio: dataFormatada,
+                inicio: dataFormatada,
+                prazo: dataFormatada
+            };
+        });
         res.json(rows);
     } catch (err) {
         res.json([]);
@@ -140,7 +143,7 @@ async function handlePostPedidos(req, res) {
     try {
         const client = String(data.client || data.cliente || data.nomeCliente || 'Cliente');
         const product = String(data.product || data.item || data.produto || data.nomeProduto || 'Produto 3D');
-        const statusProd = String(data.statusProd || data.status_prod || 'Em produção');
+        const statusProd = String(data.statusProd || data.status_prod || data.status || 'Em produção');
         const statusFin = String(data.statusFin || data.status_fin || 'Pendente');
         const maker = String(data.maker || data.responsavel || 'Rafael');
         const total = isNaN(parseFloat(data.total)) ? 0 : parseFloat(data.total);
