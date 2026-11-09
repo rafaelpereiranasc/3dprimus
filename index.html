@@ -15,6 +15,7 @@
   --muted: #6d7c8b;
   --line: #e3e9ef;
   --white: #fff;
+  --red: #c83c48;
 }
 * { box-sizing: border-box; }
 body { margin: 0; font-family: Inter, Segoe UI, Arial, sans-serif; background: var(--bg); color: var(--ink); display: grid; place-items: center; min-height: 100vh; padding: 20px; }
@@ -29,9 +30,35 @@ p { color: var(--muted); font-size: 14px; margin: 0; }
 .card-icon { width: 46px; height: 46px; border-radius: 12px; background: #e7f2ff; color: var(--blue); display: grid; place-items: center; font-size: 18px; flex-shrink: 0; }
 .card h2 { margin: 0 0 2px; font-size: 16px; color: var(--navy); }
 .card p { margin: 0; font-size: 13px; color: var(--muted); }
+
+/* TELA DE LOGIN */
+.login-overlay { position: fixed; inset: 0; background: rgba(16,36,58,0.85); display: grid; place-items: center; z-index: 9999; padding: 20px; }
+.login-card { background: white; padding: 30px; border-radius: 20px; width: min(380px, 100%); text-align: center; box-shadow: 0 20px 50px rgba(0,0,0,0.3); }
+.login-card h2 { margin: 0 0 10px; color: var(--navy); font-size: 20px; }
+.login-card p { margin-bottom: 20px; font-size: 13px; }
+.login-card input { width: 100%; padding: 12px; border: 1px solid var(--line); border-radius: 10px; font-size: 15px; text-align: center; margin-bottom: 14px; }
+.login-card button { width: 100%; background: var(--blue); color: white; padding: 12px; border: 0; border-radius: 10px; font-weight: 700; font-size: 15px; cursor: pointer; }
+.login-card button:hover { background: #125182; }
+.error-msg { color: var(--red); font-size: 12.5px; margin-top: 10px; display: none; }
+.hidden { display: none !important; }
 </style>
 </head>
 <body>
+
+<!-- TELA DE LOGIN INTEGRADA -->
+<div id="loginModal" class="login-overlay hidden">
+ <div class="login-card">
+  <div class="logo" style="width:50px; height:50px; font-size:18px; margin-bottom:12px;">3D</div>
+  <h2>Acesso Restrito</h2>
+  <p>Digite a senha para acessar o sistema.</p>
+  <form onsubmit="validarSenha(event)">
+   <input type="password" id="senhaInput" placeholder="Senha de acesso" required autofocus>
+   <button type="submit">Entrar no Sistema</button>
+   <div id="erroMsg" class="error-msg">Senha incorreta. Tente novamente.</div>
+  </form>
+ </div>
+</div>
+
 <div class="container">
  <div class="header">
   <div class="logo">3D</div>
@@ -71,18 +98,25 @@ p { color: var(--muted); font-size: 14px; margin: 0; }
 </div>
 
 <script>
-// Proteção por senha simples para a apresentação
 document.addEventListener('DOMContentLoaded', () => {
     if (sessionStorage.getItem('primus_auth') !== 'true') {
-        let senha = prompt('🔒 Acesso Restrito - 3D PRIMUS\nDigite a senha de acesso:');
-        if (senha === 'primus0809') {
-            sessionStorage.setItem('primus_auth', 'true');
-        } else {
-            alert('Senha incorreta! Acesso negado.');
-            document.body.innerHTML = '<div style="text-align:center; margin-top:35vh; font-family:sans-serif; color:#10243a;"><h2 style="color:#c83c48;">Acesso Negado</h2><p>Recarregue a página para tentar novamente.</p></div>';
-        }
+        document.getElementById('loginModal').classList.remove('hidden');
     }
 });
+
+function validarSenha(e) {
+    e.preventDefault();
+    let senha = document.getElementById('senhaInput').value;
+    if (senha === 'primus0809') {
+        sessionStorage.setItem('primus_auth', 'true');
+        document.getElementById('loginModal').classList.add('hidden');
+    } else {
+        let err = document.getElementById('erroMsg');
+        err.style.display = 'block';
+        document.getElementById('senhaInput').value = '';
+        document.getElementById('senhaInput').focus();
+    }
+}
 </script>
 </body>
 </html>
