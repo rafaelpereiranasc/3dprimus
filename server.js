@@ -100,7 +100,7 @@ app.delete('/api/os/:id', async (req, res) => {
     }
 });
 
-// --- ROTAS DE PEDIDOS / PRODUÇÃO COM TRATAMENTO TOTAL DE EXCEÇÃO ---
+// --- ROTAS DE PEDIDOS / PRODUÇÃO COM TRATAMENTO DE DATAS ---
 async function handleGetPedidos(req, res) {
     try {
         const result = await pool.query('SELECT * FROM pedidos_definitivos ORDER BY id DESC');
@@ -147,7 +147,14 @@ async function handlePostPedidos(req, res) {
         const paymentMethod = String(data.paymentMethod || data.payment_method || data.formaPagamento || 'Pix');
         const notes = String(data.notes || data.observacoes || '');
         
-        let rawDate = data.date || data.dataInicio || data.data || new Date().toISOString().split('T')[0];
+        // Pega a data de qualquer variação enviada pelo frontend
+        let rawDate = data.date || data.dataInicio || data.data || data.dataPedido || data.inicio || data.prazo || '';
+        
+        if (!rawDate) {
+            rawDate = new Date().toISOString().split('T')[0];
+        }
+
+        // Converte de AAAA-MM-DD para DD/MM/YYYY
         if (rawDate && rawDate.includes('-') && rawDate.length === 10) {
             const parts = rawDate.split('-');
             rawDate = `${parts[2]}/${parts[1]}/${parts[0]}`;
@@ -164,7 +171,7 @@ async function handlePostPedidos(req, res) {
             res.json({ success: true, id: result.rows[0].id.toString() });
         }
     } catch (err) {
-        console.error("Erro capturado e neutralizado no pedido:", err);
+        console.error("Erro no post pedidos:", err);
         res.json({ success: true, id: Math.floor(Math.random() * 100000).toString() });
     }
 }
