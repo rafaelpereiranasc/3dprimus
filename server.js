@@ -9,7 +9,7 @@ app.use(express.json());
 app.use(express.urlencoded({ extended: true }));
 app.use(express.static(__dirname));
 
-// Conexão com o PostgreSQL do Render
+// Conexão com o PostgreSQL do Render (usando sua URL interna)
 const pool = new Pool({
     connectionString: "postgresql://db_3d_primus_db_user:95zbjxWGXPv9xoZML2Sd2KchsNxKEcVJ@dpg-dbah27ijnfac73fmgg20-a/db_3d_primus_db",
     ssl: {
@@ -39,17 +39,30 @@ async function initDB() {
                 warranty_term TEXT,
                 checklist_json TEXT
             );
+
+            CREATE TABLE IF NOT EXISTS pedidos (
+                id SERIAL PRIMARY KEY,
+                client TEXT,
+                product TEXT,
+                status_prod TEXT,
+                status_fin TEXT,
+                maker TEXT,
+                total REAL,
+                cost REAL,
+                paid REAL,
+                payment_method TEXT,
+                notes TEXT,
+                date TEXT
+            );
         `);
-        console.log("Banco PostgreSQL conectado e tabelas verificadas com sucesso!");
+        console.log("Banco PostgreSQL conectado e tabelas criadas/verificadas com sucesso!");
     } catch (err) {
         console.error("Erro ao inicializar o banco PostgreSQL:", err);
     }
 }
 initDB();
 
-// --- ROTAS DA API (OS) ---
-
-// Listar todas as OS
+// --- ROTAS DE ORDENS DE SERVIÇO (OS) ---
 app.get('/api/os', async (req, res) => {
     try {
         const result = await pool.query('SELECT * FROM os ORDER BY id DESC');
@@ -78,7 +91,6 @@ app.get('/api/os', async (req, res) => {
     }
 });
 
-// Criar ou Atualizar OS
 app.post('/api/os', async (req, res) => {
     const data = req.body;
     try {
@@ -119,7 +131,6 @@ app.post('/api/os', async (req, res) => {
     }
 });
 
-// Excluir OS
 app.delete('/api/os/:id', async (req, res) => {
     try {
         await pool.query('DELETE FROM os WHERE id = $1', [parseInt(req.params.id)]);
@@ -127,6 +138,75 @@ app.delete('/api/os/:id', async (req, res) => {
     } catch (err) {
         console.error(err);
         res.status(500).json({ error: "Erro ao excluir ordem de serviço" });
+    }
+});
+
+// --- ROTAS DE PEDIDOS / PRODUÇÃO ---
+app.get('/api/pedidos', async (req, res) => {
+    try {
+        const result = await pool.query('SELECT * FROM pedidos ORDER BY id DESC');
+        const formatted = result.rows.map(row => ({
+            id: row.id.toString(),
+            client: row.client,
+            product: row.product,
+            statusProd: row.status_prod,
+            statusFin: row.status_fin,
+            maker: row.maker,
+            total: row.total,
+            cost: row.cost,
+            paid: row.paid,
+            paymentMethod: row.payment_method,
+            notes: row.notes,
+            date: row.date
+        }));
+        res.json(formatted);
+    } catch (err) {
+        console.error(err);
+        res.status(500).json({ error: "Erro ao buscar pedidos" });
+    }
+});
+
+app.post('/api/pedidos', async (req, res) => {
+    const data = req.body;
+    try {
+        if (data.id) {
+            await pool.query(`
+                UPDATE pedidos SET 
+                    client = $1, product = $2, status_prod = $3, status_fin = $4, maker = $5, 
+                    total = $6, cost = $7, paid = $8, payment_method = $9, notes = $10, date = $11
+                WHERE id = $12
+            `, [
+                data.client, data.product, data.statusProd, data.statusFin, data.maker,
+                data.total || 0, data.cost || 0, data.paid || 0, data.paymentMethod,
+                data.notes, data.date, parseInt(data.id)
+            ]);
+            res.json({ success: true, id: data.id });
+        } else {
+            const result = await pool.query(`
+                INSERT INTO pedidos (
+                    client, product, status_prod, status_fin, maker, total, cost, paid, payment_method, notes, date
+                ) VALUES ($1, $2, $3, $4, $5, $6, $7, $8, $9, $10, $11)
+                RETURNING id;
+            `, [
+                data.client, data.product, data.statusProd || 'Em produção', data.statusFin || 'Pendente',
+                data.maker, data.total || 0, data.cost || 0, data.paid || 0,
+                data.paymentMethod, data.notes, data.date
+            ]);
+            res.json({ success: true, id: result.rows[0].id.toString() });
+        }
+    } catch (err) {
+        console.error(err);
+        res.status(500).json({ error: "Erro ao salvar pedido" });
+    }
+});
+
+app.delete('/api/pedidos/:id', async (req, res) => {
+    try {
+        await pool.query('DELETE FROM pedidos WHERE id = $1', [parseInt(req.params.id)]);
+        res.json({ success: true });
+    } catch (err) {
+        console.error(err);
+        res.status(500).json({ error: "Erro ao excluir pedido" });
     }
 });
 
