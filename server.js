@@ -100,7 +100,7 @@ app.delete('/api/os/:id', async (req, res) => {
     }
 });
 
-// --- ROTAS DE PEDIDOS / PRODUÇÃO (oficiais) ---
+// --- ROTAS DE PEDIDOS / PRODUÇÃO ---
 async function handleGetPedidos(req, res) {
     try {
         const result = await pool.query('SELECT * FROM pedidos_oficial ORDER BY id DESC');
@@ -121,6 +121,7 @@ async function handleGetPedidos(req, res) {
             cost: row.cost || 0,
             paid: row.paid || 0,
             paymentMethod: row.payment_method || '',
+            payment_method: row.payment_method || '',
             notes: row.notes || '',
             observacoes: row.notes || '',
             date: row.date || ''
@@ -135,8 +136,8 @@ async function handleGetPedidos(req, res) {
 async function handlePostPedidos(req, res) {
     const data = req.body;
     try {
-        const client = data.client || data.cliente || 'Cliente';
-        const product = data.product || data.item || data.produto || 'Produto 3D';
+        const client = data.client || data.cliente || data.nomeCliente || 'Cliente';
+        const product = data.product || data.item || data.produto || data.nomeProduto || 'Produto 3D';
         const statusProd = data.statusProd || data.status_prod || 'Em produção';
         const statusFin = data.statusFin || data.status_fin || 'Pendente';
         const maker = data.maker || data.responsavel || 'Rafael';
