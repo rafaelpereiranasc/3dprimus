@@ -31,15 +31,16 @@ async function initDB() {
                 cost REAL, paid REAL, payment_method TEXT, notes TEXT
             );
 
-            CREATE TABLE IF NOT EXISTS printers_v3 (
+            CREATE TABLE IF NOT EXISTS printers_v4 (
                 id SERIAL PRIMARY KEY,
                 model TEXT,
-                serial_number TEXT,
+                serial TEXT,
+                supplier TEXT,
                 client TEXT,
-                contact TEXT,
-                sale_date TEXT,
-                warranty_status TEXT,
-                notes TEXT
+                date TEXT,
+                initial_hours REAL,
+                notes TEXT,
+                history_json TEXT
             );
         `);
         console.log("Banco PostgreSQL conectado e tabelas prontas!");
@@ -191,19 +192,20 @@ app.get('/api/orders', handleGetPedidos);
 app.post('/api/orders', handlePostPedidos);
 app.delete('/api/orders/:id', handleDeletePedidos);
 
-// --- ROTAS DE CONTROLE DE IMPRESSORAS VENDIDAS (printers_v3) ---
+// --- ROTAS DE CONTROLE DE IMPRESSORAS VENDIDAS (printers_v4) ---
 app.get('/api/printers', async (req, res) => {
     try {
-        const result = await pool.query('SELECT * FROM printers_v3 ORDER BY id DESC');
+        const result = await pool.query('SELECT * FROM printers_v4 ORDER BY id DESC');
         res.json(result.rows.map(row => ({
             id: row.id.toString(),
             model: row.model || '',
-            serialNumber: row.serial_number || '',
+            serial: row.serial || '',
+            supplier: row.supplier || '',
             client: row.client || '',
-            contact: row.contact || '',
-            saleDate: row.sale_date || '',
-            warrantyStatus: row.warranty_status || 'Ativa',
-            notes: row.notes || ''
+            date: row.date || '',
+            initialHours: row.initial_hours || 0,
+            notes: row.notes || '',
+            history: row.history_json ? JSON.parse(row.history_json) : []
         })));
     } catch (err) {
         res.json([]);
@@ -214,20 +216,21 @@ app.post('/api/printers', async (req, res) => {
     const data = req.body || {};
     try {
         const model = String(data.model || 'Impressora 3D');
-        const serialNumber = String(data.serialNumber || data.serial || '');
+        const serial = String(data.serial || '');
+        const supplier = String(data.supplier || '');
         const client = String(data.client || 'Cliente');
-        const contact = String(data.contact || '');
-        const saleDate = String(data.saleDate || data.date || new Date().toISOString().split('T')[0]);
-        const warrantyStatus = String(data.warrantyStatus || data.warranty || 'Ativa');
+        const date = String(data.date || new Date().toISOString().split('T')[0]);
+        const initialHours = isNaN(parseFloat(data.initialHours)) ? 0 : parseFloat(data.initialHours);
         const notes = String(data.notes || '');
+        const historyJson = data.history ? JSON.stringify(data.history) : '[]';
 
         if (data.id && !isNaN(parseInt(data.id))) {
-            await pool.query(`UPDATE printers_v3 SET model=$1, serial_number=$2, client=$3, contact=$4, sale_date=$5, warranty_status=$6, notes=$7 WHERE id=$8`,
-            [model, serialNumber, client, contact, saleDate, warrantyStatus, notes, parseInt(data.id)]);
+            await pool.query(`UPDATE printers_v4 SET model=$1, serial=$2, supplier=$3, client=$4, date=$5, initial_hours=$6, notes=$7, history_json=$8 WHERE id=$9`,
+            [model, serial, supplier, client, date, initialHours, notes, historyJson, parseInt(data.id)]);
             res.json({ success: true, id: data.id.toString() });
         } else {
-            const result = await pool.query(`INSERT INTO printers_v3 (model, serial_number, client, contact, sale_date, warranty_status, notes) VALUES ($1,$2,$3,$4,$5,$6,$7) RETURNING id;`,
-            [model, serialNumber, client, contact, saleDate, warrantyStatus, notes]);
+            const result = await pool.query(`INSERT INTO printers_v4 (model, serial, supplier, client, date, initial_hours, notes, history_json) VALUES ($1,$2,$3,$4,$5,$6,$7,$8) RETURNING id;`,
+            [model, serial, supplier, client, date, initialHours, notes, historyJson]);
             res.json({ success: true, id: result.rows[0].id.toString() });
         }
     } catch (err) {
@@ -237,7 +240,7 @@ app.post('/api/printers', async (req, res) => {
 
 app.delete('/api/printers/:id', async (req, res) => {
     try {
-        await pool.query('DELETE FROM printers_v3 WHERE id = $1', [parseInt(req.params.id)]);
+        await pool.query('DELETE FROM printers_v4 WHERE id = $1', [parseInt(req.params.id)]);
         res.json({ success: true });
     } catch (err) {
         res.json({ success: true });
