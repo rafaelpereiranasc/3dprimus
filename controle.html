@@ -164,4 +164,313 @@ td small { color: var(--muted); }
   </div>
   <div style="padding: 20px;">
    <div style="background: #f8fafc; padding: 12px; border-radius: 10px; margin-bottom: 16px; border: 1px solid #e3e9ef;">
-    <strong id="histInfoModel" style="color:var(--navy); font-size:1
+    <strong id="histInfoModel" style="color:var(--navy); font-size:14px;">Modelo</strong>
+    <div id="histInfoClient" style="font-size:12.5px; color:var(--muted); margin-top:2px;">Cliente</div>
+   </div>
+
+   <h3 style="font-size: 13px; color: var(--navy); margin-bottom: 8px; text-transform: uppercase;">Adicionar Nova Intervenção / Revisão</h3>
+   <form id="historyForm" onsubmit="addHistoryEntry(event)" style="display: grid; grid-template-columns: 1fr 1fr 2fr auto; gap: 10px; align-items: flex-end; margin-bottom: 24px;">
+    <input type="hidden" id="histPrinterId">
+    <label class="field">Data<input id="histDate" type="date" required></label>
+    <label class="field">Horas Atuais (Odômetro)<input id="histHours" type="number" min="0" required placeholder="Ex: 250"></label>
+    <label class="field">O que foi feito / Defeito<input id="histDesc" required placeholder="Ex: Bico entupido, troca de PTFE..."></label>
+    <button type="submit" class="primary" style="height: 41px;">Adicionar</button>
+   </form>
+
+   <h3 style="font-size: 13px; color: var(--navy); margin-bottom: 8px; text-transform: uppercase;">Linha do Tempo de Atendimentos</h3>
+   <div class="table-wrap" style="max-height: 250px; border: 1px solid var(--line); border-radius: 9px;">
+    <table>
+     <thead>
+      <tr>
+       <th>Data</th>
+       <th>Horas (Odômetro)</th>
+       <th>Descrição / Intervenção</th>
+      </tr>
+     </thead>
+     <tbody id="historyRows">
+      <tr><td colspan="3" class="empty">Nenhum histórico registrado.</td></tr>
+     </tbody>
+    </table>
+   </div>
+  </div>
+ </div>
+</div>
+
+<div id="toast" class="toast hidden"></div>
+
+<script>
+let printersCache = [];
+
+async function loadPrinters() {
+    try {
+        let res = await fetch('/api/printers');
+        printersCache = await res.json();
+        if (!Array.isArray(printersCache)) printersCache = [];
+    } catch(e) {
+        printersCache = [];
+    }
+    renderPrinters();
+}
+
+const $ = id => document.getElementById(id);
+const today = () => new Date().toISOString().slice(0,10);
+const money = n => new Intl.NumberFormat('pt-BR',{style:'currency',currency:'BRL'}).format(Number(n)||0);
+
+function toast(msg){
+    let t = $('toast');
+    if(!t) return;
+    t.textContent = msg;
+    t.classList.remove('hidden');
+    setTimeout(() => t.classList.add('hidden'), 2600);
+}
+
+function escapeHtml(s){return String(s??'').replace(/[&<>"']/g,c=>({'&':'&amp;','<':'&lt;','>':'&gt;','"':'&quot;',"'":'&#39;'}[c]))}
+
+function getWarrantyStatus(saleDateStr) {
+    if(!saleDateStr) return { status: 'active', text: '—' };
+    let venda = new Date(saleDateStr + 'T00:00:00');
+    let vencimento = new Date(venda);
+    vencimento.setFullYear(vencimento.getFullYear() + 1);
+
+    let hoje = new Date();
+    hoje.setHours(0,0,0,0);
+
+    let diffTime = vencimento - hoje;
+    let diffDays = Math.ceil(diffTime / (1000 * 60 * 60 * 24));
+    let dataFmt = vencimento.toLocaleDateString('pt-BR');
+
+    if (diffDays < 0) {
+        return { status: 'expired', text: `Vencida em ${dataFmt}` };
+    } else if (diffDays <= 30) {
+        return { status: 'warning', text: `Vence em ${diffDays} dias (${dataFmt})` };
+    } else {
+        let meses = Math.floor(diffDays / 30);
+        return { status: 'active', text: `Ativa (~${meses}m restantes - ${dataFmt})` };
+    }
+}
+
+function getNextRevision(saleDateStr, historyArr = []) {
+    if(!saleDateStr) return '—';
+    let baseDate = new Date(saleDateStr + 'T00:00:00');
+    if(historyArr && historyArr.length > 0) {
+        let ultima = historyArr[historyArr.length - 1];
+        if(ultima.date) baseDate = new Date(ultima.date + 'T00:00:00');
+    }
+
+    let hoje = new Date();
+    hoje.setHours(0,0,0,0);
+    let marcosMeses = [3, 6, 9, 12];
+    let proximaData = null;
+    let nomeRevisao = '';
+
+    for(let m of marcosMeses) {
+        let d = new Date(baseDate);
+        d.setMonth(d.getMonth() + m);
+        if(d >= hoje) {
+            proximaData = d;
+            nomeRevisao = `${m} Meses`;
+            break;
+        }
+    }
+
+    if(!proximaData) {
+        proximaData = new Date(baseDate);
+        proximaData.setMonth(proximaData.getMonth() + 18);
+        nomeRevisao = 'Revisão Periódica';
+    }
+
+    return `${proximaData.toLocaleDateString('pt-BR')} (${nomeRevisao})`;
+}
+
+function renderPrinters(){
+    let qModel = ($('searchModel')?.value || '').toLowerCase();
+    let qSerial = ($('searchSerial')?.value || '').toLowerCase();
+    let filterW = $('filterWarranty')?.value || '';
+
+    let list = printersCache.filter(p => {
+        if (!p) return false;
+        let modelMatch = (p.model || '').toLowerCase().includes(qModel);
+        let serialMatch = (p.serial || '').toLowerCase().includes(qSerial);
+        let wInfo = getWarrantyStatus(p.date);
+        if (filterW && wInfo.status !== filterW) return false;
+        return modelMatch && serialMatch;
+    });
+    
+    let tbody = $('printerRows');
+    if(!tbody) return;
+
+    tbody.innerHTML = list.length ? list.map(p => {
+        let wInfo = getWarrantyStatus(p.date);
+        let pillClass = wInfo.status === 'active' ? 'active' : wInfo.status === 'warning' ? 'warning' : 'expired';
+        let revStr = getNextRevision(p.date, p.history);
+        let valStr = p.valor ? money(p.valor) : '—';
+        let contactStr = p.contact || 'Não informado';
+
+        return `
+        <tr>
+            <td><strong>${escapeHtml(p.model)}</strong><small>S/N: ${escapeHtml(p.serial || 'N/D')}</small></td>
+            <td><strong>${escapeHtml(p.client)}</strong><small><i class="fa-solid fa-phone" style="font-size:10px;"></i> ${escapeHtml(contactStr)}</small></td>
+            <td><strong style="color:var(--blue);">${valStr}</strong></td>
+            <td><span class="pill ${pillClass}">${escapeHtml(wInfo.text)}</span></td>
+            <td><span style="color:var(--navy); font-weight:600;">${revStr}</span></td>
+            <td>${escapeHtml(p.supplier || '—')}</td>
+            <td><div style="max-width: 200px; white-space: pre-wrap; font-size:12.5px;">${escapeHtml(p.notes || '—')}</div></td>
+            <td class="no-print">
+                <div class="row-actions">
+                    <button type="button" class="mini primary" onclick="openHistoryModal('${p.id}')"><i class="fa-solid fa-clock-rotate-left"></i> Histórico</button>
+                    <button type="button" class="mini" onclick="editPrinter('${p.id}')">Editar</button>
+                    <button type="button" class="mini danger" onclick="deletePrinter('${p.id}')">×</button>
+                </div>
+            </td>
+        </tr>
+    `;}).join('') : `<tr><td colspan="8" class="empty">Nenhuma impressora encontrada.</td></tr>`;
+}
+
+function openPrinterModal(){
+    if($('printerForm')) $('printerForm').reset();
+    if($('printerId')) $('printerId').value = '';
+    if($('pDate')) $('pDate').value = today();
+    if($('pInitialHours')) $('pInitialHours').value = '0';
+    if($('modalTitle')) $('modalTitle').textContent = 'Cadastrar Impressora';
+    let modal = $('printerModal');
+    if(modal) modal.classList.remove('hidden');
+}
+
+function closePrinterModal(){
+    $('printerModal').classList.add('hidden');
+}
+
+function editPrinter(id){
+    let p = printersCache.find(x => x.id === id);
+    if(!p) return;
+    openPrinterModal();
+    if($('printerId')) $('printerId').value = p.id;
+    if($('pModel')) $('pModel').value = p.model || '';
+    if($('pSerial')) $('pSerial').value = p.serial || '';
+    if($('pSupplier')) $('pSupplier').value = p.supplier || '';
+    if($('pClient')) $('pClient').value = p.client || '';
+    if($('pContact')) $('pContact').value = p.contact || '';
+    if($('pValor')) $('pValor').value = p.valor || '';
+    if($('pDate')) $('pDate').value = p.date ? p.date.substring(0,10) : '';
+    if($('pInitialHours')) $('pInitialHours').value = p.initialHours || 0;
+    if($('pNotes')) $('pNotes').value = p.notes || '';
+    if($('modalTitle')) $('modalTitle').textContent = 'Editar Impressora';
+}
+
+async function savePrinter(e){
+    e.preventDefault();
+    let id = $('printerId')?.value || ('prn' + Date.now());
+    let existing = printersCache.find(x => x.id === id);
+
+    let p = {
+        id,
+        model: $('pModel')?.value || '',
+        serial: $('pSerial')?.value || '',
+        supplier: $('pSupplier')?.value || '',
+        client: $('pClient')?.value || '',
+        contact: $('pContact')?.value || '',
+        valor: parseFloat($('pValor')?.value) || 0,
+        date: $('pDate')?.value || today(),
+        initialHours: Number($('pInitialHours')?.value) || 0,
+        notes: $('pNotes')?.value || '',
+        history: existing ? (existing.history || []) : []
+    };
+
+    await fetch('/api/printers', {
+        method: 'POST',
+        headers: { 'Content-Type': 'application/json' },
+        body: JSON.stringify(p)
+    });
+    
+    closePrinterModal();
+    loadPrinters();
+    toast('Impressora salva na nuvem com sucesso!');
+}
+
+async function deletePrinter(id){
+    if(confirm('Deseja excluir este registro de impressora?')){
+        await fetch(`/api/printers/${id}`, { method: 'DELETE' });
+        loadPrinters();
+        toast('Registro excluído.');
+    }
+}
+
+let currentPrinterId = null;
+
+function openHistoryModal(id){
+    let p = printersCache.find(x => x.id === id);
+    if(!p) return;
+
+    currentPrinterId = p.id;
+    $('histPrinterId').value = p.id;
+    $('histInfoModel').textContent = `${p.model} (S/N: ${p.serial || 'N/D'})`;
+    $('histInfoClient').textContent = `Cliente: ${p.client} — Contato: ${p.contact || 'N/D'} — Fornecedor: ${p.supplier}`;
+    $('histDate').value = today();
+    
+    let ultimaHoras = p.history && p.history.length > 0 ? p.history[p.history.length - 1].hours : (p.initialHours || 0);
+    $('histHours').value = ultimaHoras;
+    $('histDesc').value = '';
+
+    renderHistoryTable(p.history || []);
+    $('historyModal').classList.remove('hidden');
+}
+
+function closeHistoryModal(){
+    $('historyModal').classList.add('hidden');
+    currentPrinterId = null;
+}
+
+async function addHistoryEntry(e){
+    e.preventDefault();
+    if(!currentPrinterId) return;
+
+    let novaHoras = Number($('histHours').value) || 0;
+    let p = printersCache.find(x => x.id === currentPrinterId);
+    if(!p) return;
+
+    let ultimaHoras = p.history && p.history.length > 0 ? p.history[p.history.length - 1].hours : (p.initialHours || 0);
+
+    if(novaHoras < ultimaHoras) {
+        if(!confirm(`Atenção: As horas atuais (${novaHoras}h) são menores que a leitura anterior (${ultimaHoras}h). Deseja continuar?`)) {
+            return;
+        }
+    }
+
+    let entry = {
+        date: $('histDate').value,
+        hours: novaHoras,
+        desc: $('histDesc').value.trim()
+    };
+
+    if(!p.history) p.history = [];
+    p.history.push(entry);
+
+    await fetch('/api/printers', {
+        method: 'POST',
+        headers: { 'Content-Type': 'application/json' },
+        body: JSON.stringify(p)
+    });
+
+    renderHistoryTable(p.history);
+    loadPrinters();
+    toast('Histórico salvo na nuvem!');
+    $('histDesc').value = '';
+}
+
+function renderHistoryTable(historyArr){
+    let tbody = $('historyRows');
+    if(!tbody) return;
+
+    tbody.innerHTML = historyArr && historyArr.length > 0 ? historyArr.map(h => `
+        <tr>
+            <td>${h.date ? new Date(h.date + 'T00:00:00').toLocaleDateString('pt-BR') : '—'}</td>
+            <td><strong>${h.hours} h</strong></td>
+            <td>${escapeHtml(h.desc)}</td>
+        </tr>
+    `).join('') : `<tr><td colspan="3" class="empty">Nenhum histórico registrado ainda.</td></tr>`;
+}
+
+document.addEventListener('DOMContentLoaded', loadPrinters);
+</script>
+</body>
+</html>
