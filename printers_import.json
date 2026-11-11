@@ -1,0 +1,257 @@
+[
+  {
+    "model": "A1 COMBO", "serial": "", "supplier": "SEM GARANTIA", "client": "WALLACE", "date": "2026-05-09", "contact": "99982385509", "valor": 5300, "notes": "Valor: R$ 5300"
+  },
+  {
+    "model": "A1 MINI", "serial": "", "supplier": "3D TOUCH", "client": "CRISNA MARABÁ", "date": "2025-05-18", "contact": "94992548144", "valor": 2600, "notes": "Valor: R$ 2600"
+  },
+  {
+    "model": "A1 COMBO", "serial": "", "supplier": "3D TOUCH", "client": "ISABELA MARABÁ", "date": "2026-05-18", "contact": "94984031975", "valor": 5500, "notes": "Valor: R$ 5500"
+  },
+  {
+    "model": "A1 COMBO", "serial": "", "supplier": "3D TOUCH", "client": "DULCE AÇAILANDIA", "date": "2026-06-03", "contact": "99984047573", "valor": 5700, "notes": "Valor: R$ 5700"
+  },
+  {
+    "model": "A1 COMBO", "serial": "", "supplier": "3D TOUCH", "client": "NILIANE PINHEIRO SILVA", "date": "2026-06-03", "contact": "84996068811", "valor": 5800, "notes": "Valor: R$ 5800"
+  },
+  {
+    "model": "P2S", "serial": "", "supplier": "3DCLUB", "client": "PAULO RICARDO", "date": "2026-06-17", "contact": "99984175285", "valor": 11000, "notes": "Valor: R$ 11000 | Nota Fiscal: COM NF"
+  },
+  {
+    "model": "A1 COMBO", "serial": "", "supplier": "3DTOUCH", "client": "WALLACE", "date": "2026-06-18", "contact": "99982385509", "valor": 5700, "notes": "Valor: R$ 5700"
+  },
+  {
+    "model": "A1 COMBO", "serial": "", "supplier": "3DTOUCH", "client": "ANA PAULA", "date": "2026-06-19", "contact": "99982576944", "valor": 5600, "notes": "Valor: R$ 5600"
+  },
+  {
+    "model": "A1", "serial": "", "supplier": "LISBOA", "client": "JENNIFER", "date": "2026-06-21", "contact": "99991148695", "valor": 3200, "notes": "Valor: R$ 3200"
+  },
+  {
+    "model": "A1 COMBO", "serial": "", "supplier": "PERDEU GARANTIA", "client": "MICHELE SILVA BALBINO", "date": "2026-06-25", "contact": "6399253096", "valor": 5699, "notes": "Valor: R$ 5699"
+  },
+  {
+    "model": "A1 COMBO", "serial": "", "supplier": "", "client": "BRUNA DELMONTE", "date": "2026-07-03", "contact": "99982537106", "valor": 5599, "notes": "Valor: R$ 5599"
+  },
+  {
+    "model": "A1 COMBO", "serial": "", "supplier": "", "client": "DIANNY", "date": "2026-07-09", "contact": "99991901218", "valor": 5699, "notes": "Valor: R$ 5699"
+  },
+  {
+    "model": "A1 COMBO", "serial": "", "supplier": "", "client": "NETO", "date": "2026-07-15", "contact": "99991137198", "valor": 5599, "notes": "Valor: R$ 5599"
+  },
+  {
+    "model": "A1 COMBO", "serial": "", "supplier": "", "client": "RAISONN", "date": "2026-07-17", "contact": "99991921568", "valor": 5700, "notes": "Valor: R$ 5700"
+  },
+  {
+    "model": "A1", "serial": "", "supplier": "", "client": "JACYELEN", "date": "2026-07-20", "contact": "99991614910", "valor": 4200, "notes": "Valor: R$ 4200"
+  },
+  {
+    "model": "A1 COMBO", "serial": "", "supplier": "3DCLUB", "client": "ROBERTO (ELLA)", "date": "2026-07-23", "contact": "99981730726", "valor": 5530, "notes": "Valor: R$ 5530"
+  },
+  {
+    "model": "AD5X", "serial": "", "supplier": "LEIVAS", "client": "ROBERA KELLY", "date": "2026-07-31", "contact": "99992276688", "valor": 3900, "notes": "Valor: R$ 3900"
+  },
+  {
+    "model": "A1 MINI", "serial": "", "supplier": "", "client": "NILIANE PINHEIRO SILVA", "date": "2026-08-07", "contact": "84996068811", "valor": 2500, "notes": "Valor: R$ 2500"
+  },
+  {
+    "model": "A1 COMBO", "serial": "03900D622113174", "supplier": "3DCLUB", "client": "FERNANDO SANDES", "date": "2026-08-10", "contact": "99984348485", "valor": 4999, "notes": "Valor: R$ 4999 | Cashback: 275"
+  },
+  {
+    "model": "A1 COMBO", "serial": "03900D631526786", "supplier": "3DCLUB", "client": "BRENO REIS CORREA", "date": "2026-08-10", "contact": "99991928472", "valor": 4999, "notes": "Valor: R$ 4999"
+  },
+  {
+    "model": "A1 COMBO", "serial": "", "supplier": "3DCLUB", "client": "NAARA ESTER DA R. FERREIRA", "date": "2026-08-14", "contact": "991401406", "valor": 5700, "notes": "Valor: R$ 5700 | Cashback: 275"
+  },
+  {
+    "model": "A1 MINI", "serial": "", "supplier": "3DCLUB", "client": "MARCUS VINICIUS", "date": "2026-08-15", "contact": "63991183962", "valor": 2500, "notes": "Valor: R$ 2500 | Cashback: 275 | Nota Fiscal: COM NF"
+  },
+  {
+    "model": "SNAPMAKER", "serial": "", "supplier": "3DCLUB", "client": "WALLACE", "date": "2026-08-17", "contact": "99982385509", "valor": 14900, "notes": "Valor: R$ 14900 | Obs: OBS (A1 NO VALOR 2900)"
+  },
+  {
+    "model": "P1S", "serial": "", "supplier": "SEM GARANTIA", "client": "RENATO RW", "date": "2026-08-19", "contact": "99991132890", "valor": 4500, "notes": "Valor: R$ 4500 | Cashback: 2026-09-19 | Obs: falta 2500 3x"
+  },
+  {
+    "model": "SNAPMAKER", "serial": "COM NOTA FISCAL", "supplier": "3DCLUB", "client": "BRUNA DELMONTE", "date": "2026-08-23", "contact": "99982537106", "valor": 14500, "notes": "Valor: R$ 14500"
+  },
+  {
+    "model": "A1 COMBO", "serial": "", "supplier": "3DCLUB", "client": "FERNANDO SANDES", "date": "2026-08-23", "contact": "99984348485", "valor": 5000, "notes": "Valor: R$ 5000"
+  },
+  {
+    "model": "AD5X", "serial": "", "supplier": "LEIVAS", "client": "ANDRESSA JACQUELINE A. DOS SANTOS", "date": "2026-08-24", "contact": "99981854443", "valor": 3600, "notes": "Valor: R$ 3600"
+  },
+  {
+    "model": "A1 MINI", "serial": "", "supplier": "(LEIVAS)", "client": "ERICK LIMA", "date": "2026-08-25", "contact": "99985125660", "valor": 2500, "notes": "Valor: R$ 2500 | Cashback: 175"
+  },
+  {
+    "model": "A1 COMBO", "serial": "03900D630622006", "supplier": "3DCLUB", "client": "MARIA ERIDAN G PINHO", "date": "2026-08-26", "contact": "981594885", "valor": 5500, "notes": "Valor: R$ 5500"
+  },
+  {
+    "model": "A1 COMBO",
+    "serial": "03900D633029873",
+    "supplier": "3DCLUB",
+    "client": "WESLAINE M SANTOS FONTES",
+    "date": "2026-08-27",
+    "contact": "991153155",
+    "valor": 5000,
+    "notes": "Valor: R$ 5000 | Nota Fiscal: COM NF"
+  },
+  {
+    "model": "A1 (SEMINOVA)", "serial": "", "supplier": "WALLACE", "client": "MATHEUS MODELADOR", "date": "2026-08-27", "contact": "981550850", "valor": 2900, "notes": "Valor: R$ 2900"
+  },
+  {
+    "model": "AD5X", "serial": "", "supplier": "LEIVAS", "client": "DANIEL DA SILVA CARDOSO", "date": "2026-08-29", "contact": "992306249", "valor": 3700, "notes": "Valor: R$ 3700"
+  },
+  {
+    "model": "A1 COMBO", "serial": "", "supplier": "3DCLUB", "client": "MATHEUS MODELADOR", "date": "2026-08-31", "contact": "981550850", "valor": 5700, "notes": "Valor: R$ 5700"
+  },
+  {
+    "model": "SNAPMAKER", "serial": "8110028080300020", "supplier": "PEDRO IMP", "client": "ROBERTO (ELLA)", "date": "2026-09-02", "contact": "981730726", "valor": 15360, "notes": "Valor: R$ 15360"
+  },
+  {
+    "model": "H2C Combo", "serial": "", "supplier": "3DCLUB", "client": "JULIANO PAIVA DE BRITO", "date": "2026-09-04", "contact": "981059138", "valor": 29500, "notes": "Valor: R$ 29500 | Nota Fiscal: COM NF"
+  },
+  {
+    "model": "A1 COMBO", "serial": "", "supplier": "3DCLUB", "client": "ANTONIA NILCA DINIZ SANTOS", "date": "2026-09-04", "contact": "991471797", "valor": 4999, "notes": "Valor: R$ 4999"
+  },
+  {
+    "model": "A1 COMBO", "serial": "03900D631511037", "supplier": "3DCLUB", "client": "MIKAELE KAROLINE S. CARDOSO (FÁBIO)", "date": "2026-09-07", "contact": "991622541", "valor": 5499, "notes": "Valor: R$ 5499"
+  },
+  {
+    "model": "A1 COMBO", "serial": "03900D632226825", "supplier": "3DCLUB", "client": "ADRIANA MOTA NASCIMENTO", "date": "2026-09-07", "contact": "992326024", "valor": 5499, "notes": "Valor: R$ 5499 | Nota Fiscal: COM NF"
+  },
+  {
+    "model": "A1 MINI", "serial": "(LEIVAS)", "supplier": "", "client": "CAMILA AIRES", "date": "2026-09-11", "contact": "984649784", "valor": 2500, "notes": "Valor: R$ 2500"
+  },
+  {
+    "model": "A1 COMBO", "serial": "", "supplier": "3DCLUB", "client": "GABRIEL LOPES DA ROCHA", "date": "2026-09-14", "contact": "63991221967", "valor": 5321, "notes": "Valor: R$ 5321"
+  },
+  {
+    "model": "A1 COMBO",
+    "serial": "03900D631509070",
+    "supplier": "3DCLUB",
+    "client": "WESLAINE M SANTOS FONTES",
+    "date": "2026-09-14",
+    "contact": "991153155",
+    "valor": 5400,
+    "notes": "Valor: R$ 5400 | Cashback: 200 | Nota Fiscal: COM NF"
+  },
+  {
+    "model": "A1 COMBO", "serial": "03900D632228284", "supplier": "3DCLUB", "client": "EDUARDO GOMES DE SOUSA", "date": "2026-09-16", "contact": "984094224", "valor": 5500, "notes": "Valor: R$ 5500"
+  },
+  {
+    "model": "A1 COMBO", "serial": "03900D633015826", "supplier": "3DCLUB", "client": "KESIA DANTAS", "date": "2026-09-16", "contact": "981332866", "valor": 5400, "notes": "Valor: R$ 5400 | Cashback: 140"
+  },
+  {
+    "model": "A1", "serial": "03900D613104697", "supplier": "3DCLUB", "client": "PAULO CESAR MARTINS DE ALMEIDA", "date": "2026-09-17", "contact": "991761010", "valor": 3565, "notes": "Valor: R$ 3565"
+  },
+  {
+    "model": "A1", "serial": "", "supplier": "3DTOUCH", "client": "ALEX CARIMBOS ALIANÇA", "date": "2026-09-18", "contact": "991170526", "valor": 3199, "notes": "Valor: R$ 3199"
+  },
+  {
+    "model": "AD5X", "serial": "MTTF9501037", "supplier": "VOXEL", "client": "CLEITON PETENON", "date": "2026-09-19", "contact": "991704318", "valor": 3650, "notes": "Valor: R$ 3650"
+  },
+  {
+    "model": "A1 MINI", "serial": "", "supplier": "", "client": "UIANA FABIA DA CRUZ LIMA", "date": "2026-09-24", "contact": "98987898908", "valor": 2500, "notes": "Valor: R$ 2500"
+  },
+  {
+    "model": "A1 COMBO", "serial": "03900D631509773", "supplier": "3DCLUB", "client": "KAIRO ALVES DE SOUZA", "date": "2026-09-25", "contact": "991254552", "valor": 5000, "notes": "Valor: R$ 5000"
+  },
+  {
+    "model": "A1 COMBO",
+    "serial": "03900D631527211",
+    "supplier": "3DCLUB",
+    "client": "MARCO AURÉLIO MARANHÃO",
+    "date": "2026-09-26",
+    "contact": "94996655276",
+    "valor": 5500,
+    "notes": "Valor: R$ 5500 | Cashback: 400 | Nota Fiscal: COM NF"
+  },
+  {
+    "model": "A1", "serial": "03900D631508968", "supplier": "3DCLUB", "client": "MARCO AURÉLIO MARANHÃO", "date": "2026-09-26", "contact": "94996655276", "valor": 3500, "notes": "Valor: R$ 3500 | Nota Fiscal: COM NF"
+  },
+  {
+    "model": "A1 MINI", "serial": "0300HA613101311", "supplier": "3DTOUCH", "client": "EMERSON DE SOUSA PEREIRA", "date": "2026-10-01", "contact": "982069724", "valor": 2500, "notes": "Valor: R$ 2500"
+  },
+  {
+    "model": "A1 COMBO", "serial": "03900D632229137", "supplier": "3DCLUB", "client": "JARDEL DE SALES SILVA", "date": "2026-10-02", "contact": "984706812", "valor": 5150, "notes": "Valor: R$ 5150 | Nota Fiscal: COM NF"
+  },
+  {
+    "model": "A1 MINI", "serial": "0300HA632901451", "supplier": "", "client": "HEITOR CAMARA DO NASCIMENTO", "date": "2026-10-05", "contact": "98985168255", "valor": 2800, "notes": "Valor: R$ 2800"
+  },
+  {
+    "model": "A1 COMBO", "serial": "03900D632228988", "supplier": "3DCLUB", "client": "NILIANE PINHEIRO SILVA", "date": "2026-10-06", "contact": "84996068811", "valor": 5500, "notes": "Valor: R$ 5500"
+  },
+  {
+    "model": "A1 COMBO", "serial": "03900D641322194", "supplier": "3DCLUB", "client": "ALEXANDRE MACEDO RODRIGUES", "date": "2026-10-09", "contact": "982344685", "valor": 5150, "notes": "Valor: R$ 5150"
+  },
+  {
+    "model": "A1", "serial": "03900D652432151", "supplier": "3DCLUB", "client": "GISELE BARROS DE LIMA", "date": "2026-10-09", "contact": "94991164850", "valor": 3700, "notes": "Valor: R$ 3700"
+  },
+  {
+    "model": "A2L COMBO", "serial": "26A19A01B660400826", "supplier": "3DCLUB", "client": "GRÁFICA MORIÁ", "date": "2026-10-09", "contact": "991525288", "valor": 6800, "notes": "Valor: R$ 6800"
+  },
+  {
+    "model": "X2D COMBO", "serial": "20P5BJ662201896", "supplier": "3DCLUB", "client": "RONIE CARLOS MAGALHÃES CHAGAS", "date": "2026-10-13", "contact": "981963194", "valor": 14000, "notes": "Valor: R$ 14000"
+  },
+  {
+    "model": "A1 COMBO", "serial": "03900D631510060", "supplier": "3DCLUB", "client": "EVELLIN DOS SANTOS TEIXEIRA", "date": "2026-10-17", "contact": "91991143369", "valor": 5300, "notes": "Valor: R$ 5300"
+  },
+  {
+    "model": "SNAPMAKER", "serial": "", "supplier": "PEDRO IMP", "client": "BRENO REIS CORREA", "date": "2026-10-17", "contact": "99991928472", "valor": 10900, "notes": "Valor: R$ 10900 | Cashback: 160"
+  },
+  {
+    "model": "A1 COMBO", "serial": "03900D632222662", "supplier": "3DCLUB", "client": "ROMÁRIO SALGADO SILVA", "date": "2026-10-20", "contact": "", "valor": 5500, "notes": "Valor: R$ 5500"
+  },
+  {
+    "model": "A2L COMBO", "serial": "", "supplier": "3DCLUB", "client": "MOISÉS SOUSA ALMEIDA", "date": "2026-10-21", "contact": "63992921367", "valor": 7550, "notes": "Valor: R$ 7550"
+  },
+  {
+    "model": "A1 COMBO", "serial": "03900D641322217", "supplier": "3DCLUB", "client": "JHONATAN SOUZA ARAUJO", "date": "2026-10-22", "contact": "991907598", "valor": 5400, "notes": "Valor: R$ 5400 | Nota Fiscal: COM NF"
+  },
+  {
+    "model": "A1 MINI", "serial": "", "supplier": "", "client": "MARIA ELIENE SOUZA ARAUJO", "date": "2026-10-26", "contact": "91983996390", "valor": 2500, "notes": "Valor: R$ 2500 | Nota Fiscal: COM NF"
+  },
+  {
+    "model": "A1", "serial": "03900D632225441", "supplier": "3DCLUB", "client": "VICINIUS AIRES", "date": "2026-10-26", "contact": "63992764814", "valor": 2950, "notes": "Valor: R$ 2950 | Nota Fiscal: COM NF"
+  },
+  {
+    "model": "SNAPMAKER", "serial": "8110026041410260", "supplier": "3DCLUB", "client": "VICINIUS AIRES", "date": "2026-10-26", "contact": "63992764814", "valor": 10700, "notes": "Valor: R$ 10700 | Nota Fiscal: COM NF"
+  },
+  {
+    "model": "A1 MINI", "serial": "0300HA662503518", "supplier": "3DCLUB", "client": "RAIMUNDO FERNANDES DO R FILHO", "date": "2026-10-27", "contact": "991811362", "valor": 2500, "notes": "Valor: R$ 2500"
+  },
+  {
+    "model": "A1 COMBO", "serial": "03900D632222607", "supplier": "3DCLUB", "client": "VALERIA DE FREITAS QUEIROGA", "date": "2026-10-30", "contact": "984521999", "valor": 5000, "notes": "Valor: R$ 5000"
+  },
+  {
+    "model": "A2L", "serial": "26A19A01B661500474", "supplier": "3DCLUB", "client": "GISELE BARROS DE LIMA", "date": "2026-10-30", "contact": "94991164850", "valor": 5500, "notes": "Valor: R$ 5500"
+  },
+  {
+    "model": "A1", "serial": "03900D641305922", "supplier": "3DCLUB", "client": "ODINEIA MESSIAS ARAÚJO", "date": "2026-11-03", "contact": "991616928", "valor": 3500, "notes": "Valor: R$ 3500"
+  },
+  {
+    "model": "A1 COMBO", "serial": "03900D642305369", "supplier": "3DCLUB", "client": "JOURDAN GUIMARAES PINHEIRO", "date": "2026-11-03", "contact": "991007419", "valor": 5100, "notes": "Valor: R$ 5100"
+  },
+  {
+    "model": "A1 COMBO", "serial": "03900D652434612", "supplier": "3DCLUB", "client": "SAYANE SILVA SOUSA", "date": "2026-11-03", "contact": "991714669", "valor": 5500, "notes": "Valor: R$ 5500 | Nota Fiscal: COM NF"
+  },
+  {
+    "model": "A2L COMBO", "serial": "26A19A01B630300849", "supplier": "3DCLUB", "client": "ANTONIO CARLOS COSTA DE OLIVEIRA", "date": "2026-11-04", "contact": "992060183", "valor": 5400, "notes": "Valor: R$ 5400"
+  },
+  {
+    "model": "A1 MINI COMBO", "serial": "B32U00A661202849", "supplier": "LEIVAS", "client": "MARLON SILVA ALVES", "date": "2026-11-04", "contact": "984668868", "valor": 3900, "notes": "Valor: R$ 3900"
+  },
+  {
+    "model": "A1 COMBO", "serial": "03900D652429946", "supplier": "FUJIOKA", "client": "EDMARA BRITO DE CARVALHO", "date": "2026-11-07", "contact": "991423748", "valor": 4299, "notes": "Valor: R$ 4299"
+  },
+  {
+    "model": "A1 COMBO", "serial": "03900D652430306", "supplier": "FUJIOKA", "client": "DANIEL DA SILVA ANDRADE", "date": "2026-11-07", "contact": "992018497", "valor": 4300, "notes": "Valor: R$ 4300"
+  },
+  {
+    "model": "A1 COMBO", "serial": "03900D652431551", "supplier": "3DCLUB", "client": "ADEILDO FELIPE ALMEIDA GONÇALVES", "date": "2026-11-10", "contact": "985487297", "valor": 4300, "notes": "Valor: R$ 4300"
+  },
+  {
+    "model": "A1 COMBO", "serial": "03900D642914649", "supplier": "3DCLUB", "client": "JEFERSON CARVALHO CASTRO", "date": "2026-11-10", "contact": "(63)981212936", "valor": 4140, "notes": "Valor: R$ 4140"
+  }
+]
