@@ -1,6 +1,7 @@
 const express = require('express');
 const { Pool } = require('pg');
 const path = require('path');
+const fs = require('fs');
 
 const app = express();
 const PORT = process.env.PORT || 3000;
@@ -56,6 +57,31 @@ async function initDB() {
     }
 }
 initDB();
+
+// --- ROTA DE IMPORTAÇÃO AUTOMÁTICA DAS 78 IMPRESSORAS ---
+app.get('/api/import-printers-now', async (req, res) => {
+    try {
+        if (!fs.existsSync('printers_import.json')) {
+            return res.send('Erro: Arquivo printers_import.json não encontrado na raiz do projeto!');
+        }
+        const rawdata = fs.readFileSync('printers_import.json', 'utf8');
+        const printers = JSON.parse(rawdata);
+        
+        let count = 0;
+        for (let p of printers) {
+            await pool.query(
+                `INSERT INTO printers_v4 (model, serial, supplier, client, contact, valor, date, initial_hours, notes, history_json) 
+                 VALUES ($1, $2, $3, $4, $5, $6, $7, 0, $8, '[]')`,
+                [p.model, p.serial || '', p.supplier || '', p.client, p.contact || '', p.valor || 0, p.date, p.notes]
+            );
+            count++;
+        }
+        res.send(`Sucesso! ${count} impressoras foram importadas para o PostgreSQL da 3D Primus!`);
+    } catch (err) {
+        console.error(err);
+        res.status(500).send('Erro na importação: ' + err.message);
+    }
+});
 
 // --- ROTAS DE ORDENS DE SERVIÇO (OS) ---
 app.get('/api/os', async (req, res) => {
