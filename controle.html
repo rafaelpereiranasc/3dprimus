@@ -94,7 +94,7 @@ td small { color: var(--muted); }
  </div>
  <div class="actions no-print">
   <button type="button" class="secondary" onclick="window.print()"><i class="fa-solid fa-print"></i> Imprimir Relatório</button>
-  <button type="button" class="primary" onclick="openPrinterModal()">＋ Cadastrar Impressora</button>
+  <button type="button" class="primary" onclick="abrirModalImpressora()">＋ Cadastrar Impressora</button>
  </div>
 </header>
 
@@ -133,8 +133,8 @@ td small { color: var(--muted); }
 <!-- MODAL DE CADASTRO / EDIÇÃO -->
 <div class="modal hidden" id="printerModal">
  <div class="modal-card">
-  <div class="modal-title"><h2 id="modalTitle">Cadastrar Impressora</h2><button type="button" class="close" onclick="closePrinterModal()">✕</button></div>
-  <form id="printerForm" onsubmit="savePrinter(event)">
+  <div class="modal-title"><h2 id="modalTitle">Cadastrar Impressora</h2><button type="button" class="close" onclick="fecharModalImpressora()">✕</button></div>
+  <form id="printerForm" onsubmit="salvarImpressora(event)">
    <input type="hidden" id="printerId">
    <div class="form-grid">
     <label class="field">Modelo da Impressora *<input id="pModel" required placeholder="Ex: Ender 3 Pro / Bambu Lab A1"></label>
@@ -148,7 +148,7 @@ td small { color: var(--muted); }
     <label class="field full">Observações / Upgrades *<textarea id="pNotes" rows="2" placeholder="Insira detalhes como garantia estendida, peças trocadas..."></textarea></label>
    </div>
    <div class="form-actions">
-    <button type="button" class="secondary" onclick="closePrinterModal()">Cancelar</button>
+    <button type="button" class="secondary" onclick="fecharModalImpressora()">Cancelar</button>
     <button type="submit" class="primary">Salvar na Nuvem</button>
    </div>
   </form>
@@ -326,7 +326,7 @@ function renderPrinters(){
     `;}).join('') : `<tr><td colspan="8" class="empty">Nenhuma impressora encontrada.</td></tr>`;
 }
 
-function openPrinterModal(){
+function abrirModalImpressora(){
     if($('printerForm')) $('printerForm').reset();
     if($('printerId')) $('printerId').value = '';
     if($('pDate')) $('pDate').value = today();
@@ -336,14 +336,14 @@ function openPrinterModal(){
     if(modal) modal.classList.remove('hidden');
 }
 
-function closePrinterModal(){
+function fecharModalImpressora(){
     $('printerModal').classList.add('hidden');
 }
 
 function editPrinter(id){
     let p = printersCache.find(x => x.id === id);
     if(!p) return;
-    openPrinterModal();
+    abrirModalImpressora();
     if($('printerId')) $('printerId').value = p.id;
     if($('pModel')) $('pModel').value = p.model || '';
     if($('pSerial')) $('pSerial').value = p.serial || '';
@@ -357,7 +357,7 @@ function editPrinter(id){
     if($('modalTitle')) $('modalTitle').textContent = 'Editar Impressora';
 }
 
-async function savePrinter(e){
+async function salvarImpressora(e){
     e.preventDefault();
     let id = $('printerId')?.value || ('prn' + Date.now());
     let existing = printersCache.find(x => x.id === id);
@@ -382,7 +382,7 @@ async function savePrinter(e){
         body: JSON.stringify(p)
     });
     
-    closePrinterModal();
+    fecharModalImpressora();
     loadPrinters();
     toast('Impressora salva na nuvem com sucesso!');
 }
