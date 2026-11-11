@@ -37,12 +37,19 @@ async function initDB() {
                 serial TEXT,
                 supplier TEXT,
                 client TEXT,
+                contact TEXT,
+                valor NUMERIC,
                 date TEXT,
                 initial_hours REAL,
                 notes TEXT,
                 history_json TEXT
             );
         `);
+        
+        // Garante que colunas novas existam caso a tabela já estivesse criada
+        await pool.query(`ALTER TABLE printers_v4 ADD COLUMN IF NOT EXISTS contact TEXT;`);
+        await pool.query(`ALTER TABLE printers_v4 ADD COLUMN IF NOT EXISTS valor NUMERIC;`);
+
         console.log("Banco PostgreSQL conectado e tabelas prontas!");
     } catch (err) {
         console.error("Erro ao inicializar o banco:", err);
@@ -202,6 +209,8 @@ app.get('/api/printers', async (req, res) => {
             serial: row.serial || '',
             supplier: row.supplier || '',
             client: row.client || '',
+            contact: row.contact || '',
+            valor: row.valor || 0,
             date: row.date || '',
             initialHours: row.initial_hours || 0,
             notes: row.notes || '',
@@ -219,21 +228,24 @@ app.post('/api/printers', async (req, res) => {
         const serial = String(data.serial || '');
         const supplier = String(data.supplier || '');
         const client = String(data.client || 'Cliente');
+        const contact = String(data.contact || '');
+        const valor = isNaN(parseFloat(data.valor)) ? 0 : parseFloat(data.valor);
         const date = String(data.date || new Date().toISOString().split('T')[0]);
         const initialHours = isNaN(parseFloat(data.initialHours)) ? 0 : parseFloat(data.initialHours);
         const notes = String(data.notes || '');
         const historyJson = data.history ? JSON.stringify(data.history) : '[]';
 
         if (data.id && !isNaN(parseInt(data.id))) {
-            await pool.query(`UPDATE printers_v4 SET model=$1, serial=$2, supplier=$3, client=$4, date=$5, initial_hours=$6, notes=$7, history_json=$8 WHERE id=$9`,
-            [model, serial, supplier, client, date, initialHours, notes, historyJson, parseInt(data.id)]);
+            await pool.query(`UPDATE printers_v4 SET model=$1, serial=$2, supplier=$3, client=$4, contact=$5, valor=$6, date=$7, initial_hours=$8, notes=$9, history_json=$10 WHERE id=$11`,
+            [model, serial, supplier, client, contact, valor, date, initialHours, notes, historyJson, parseInt(data.id)]);
             res.json({ success: true, id: data.id.toString() });
         } else {
-            const result = await pool.query(`INSERT INTO printers_v4 (model, serial, supplier, client, date, initial_hours, notes, history_json) VALUES ($1,$2,$3,$4,$5,$6,$7,$8) RETURNING id;`,
-            [model, serial, supplier, client, date, initialHours, notes, historyJson]);
+            const result = await pool.query(`INSERT INTO printers_v4 (model, serial, supplier, client, contact, valor, date, initial_hours, notes, history_json) VALUES ($1,$2,$3,$4,$5,$6,$7,$8,$9,$10) RETURNING id;`,
+            [model, serial, supplier, client, contact, valor, date, initialHours, notes, historyJson]);
             res.json({ success: true, id: result.rows[0].id.toString() });
         }
     } catch (err) {
+        console.error(err);
         res.json({ success: true, id: Math.floor(Math.random() * 100000).toString() });
     }
 });
