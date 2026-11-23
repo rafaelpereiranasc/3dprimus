@@ -15,6 +15,17 @@ const pool = new Pool({
     ssl: { rejectUnauthorized: false }
 });
 
+function parseJsonArraySafe(val) {
+    if (!val) return [];
+    if (Array.isArray(val)) return val;
+    try {
+        const parsed = JSON.parse(val);
+        return Array.isArray(parsed) ? parsed : [];
+    } catch {
+        return [];
+    }
+}
+
 async function initDB() {
     try {
         await pool.query(`
@@ -46,8 +57,7 @@ async function initDB() {
                 history_json TEXT
             );
         `);
-        
-        // Garante que colunas novas existam caso a tabela já estivesse criada
+
         await pool.query(`ALTER TABLE printers_v4 ADD COLUMN IF NOT EXISTS contact TEXT;`);
         await pool.query(`ALTER TABLE printers_v4 ADD COLUMN IF NOT EXISTS valor NUMERIC;`);
 
@@ -66,7 +76,7 @@ app.get('/api/import-printers-now', async (req, res) => {
         }
         const rawdata = fs.readFileSync('printers_import.json', 'utf8');
         const printers = JSON.parse(rawdata);
-        
+
         let count = 0;
         for (let p of printers) {
             await pool.query(
@@ -134,10 +144,11 @@ app.get('/api/os', async (req, res) => {
             paid: row.paid || 0,
             executedService: row.executed_service || '',
             warrantyTerm: row.warranty_term || '',
-            checklistTextos: row.checklist_json ? JSON.parse(row.checklist_json) : []
+            checklistTextos: parseJsonArraySafe(row.checklist_json)
         })));
     } catch (err) {
-        res.json([]);
+        console.error(err);
+        res.status(500).json({ error: 'Erro ao buscar OS' });
     }
 });
 
@@ -161,16 +172,21 @@ app.post('/api/os', async (req, res) => {
         const chk = data.checklistTextos ? JSON.stringify(data.checklistTextos) : '[]';
 
         if (data.id && !isNaN(parseInt(data.id))) {
-            await pool.query(`UPDATE os_v2 SET os_number=$1, client=$2, phone=$3, item=$4, reported_defect=$5, date=$6, deadline=$7, status=$8, labor_cost=$9, parts_cost=$10, total=$11, paid=$12, executed_service=$13, warranty_term=$14, checklist_json=$15 WHERE id=$16`,
-            [osNumber, client, phone, item, reportedDefect, date, deadline, status, laborCost, partsCost, total, paid, executedService, warrantyTerm, chk, parseInt(data.id)]);
+            await pool.query(
+                `UPDATE os_v2 SET os_number=$1, client=$2, phone=$3, item=$4, reported_defect=$5, date=$6, deadline=$7, status=$8, labor_cost=$9, parts_cost=$10, total=$11, paid=$12, executed_service=$13, warranty_term=$14, checklist_json=$15 WHERE id=$16`,
+                [osNumber, client, phone, item, reportedDefect, date, deadline, status, laborCost, partsCost, total, paid, executedService, warrantyTerm, chk, parseInt(data.id)]
+            );
             res.json({ success: true, id: data.id.toString() });
         } else {
-            const result = await pool.query(`INSERT INTO os_v2 (os_number, client, phone, item, reported_defect, date, deadline, status, labor_cost, parts_cost, total, paid, executed_service, warranty_term, checklist_json) VALUES ($1,$2,$3,$4,$5,$6,$7,$8,$9,$10,$11,$12,$13,$14,$15) RETURNING id;`,
-            [osNumber, client, phone, item, reportedDefect, date, deadline, status, laborCost, partsCost, total, paid, executedService, warrantyTerm, chk]);
+            const result = await pool.query(
+                `INSERT INTO os_v2 (os_number, client, phone, item, reported_defect, date, deadline, status, labor_cost, parts_cost, total, paid, executed_service, warranty_term, checklist_json) VALUES ($1,$2,$3,$4,$5,$6,$7,$8,$9,$10,$11,$12,$13,$14,$15) RETURNING id;`,
+                [osNumber, client, phone, item, reportedDefect, date, deadline, status, laborCost, partsCost, total, paid, executedService, warrantyTerm, chk]
+            );
             res.json({ success: true, id: result.rows[0].id.toString() });
         }
     } catch (err) {
-        res.json({ success: true, id: Math.floor(Math.random() * 100000).toString() });
+        console.error(err);
+        res.status(500).json({ success: false, error: 'Erro ao salvar OS' });
     }
 });
 
@@ -179,7 +195,8 @@ app.delete('/api/os/:id', async (req, res) => {
         await pool.query('DELETE FROM os_v2 WHERE id = $1', [parseInt(req.params.id)]);
         res.json({ success: true });
     } catch (err) {
-        res.json({ success: true });
+        console.error(err);
+        res.status(500).json({ success: false, error: 'Erro ao excluir OS' });
     }
 });
 
@@ -204,7 +221,8 @@ async function handleGetPedidos(req, res) {
             notes: row.notes || ''
         })));
     } catch (err) {
-        res.json([]);
+        console.error(err);
+        res.status(500).json({ error: 'Erro ao buscar pedidos' });
     }
 }
 
@@ -226,16 +244,21 @@ async function handlePostPedidos(req, res) {
         const notes = String(data.notes || '');
 
         if (data.id && !isNaN(parseInt(data.id))) {
-            await pool.query(`UPDATE pedidos_v2 SET client=$1, phone=$2, product=$3, start_date=$4, deadline=$5, status=$6, financial_status=$7, responsible=$8, total=$9, cost=$10, paid=$11, payment_method=$12, notes=$13 WHERE id=$14`,
-            [client, phone, product, startDate, deadline, status, financialStatus, responsible, total, cost, paid, paymentMethod, notes, parseInt(data.id)]);
+            await pool.query(
+                `UPDATE pedidos_v2 SET client=$1, phone=$2, product=$3, start_date=$4, deadline=$5, status=$6, financial_status=$7, responsible=$8, total=$9, cost=$10, paid=$11, payment_method=$12, notes=$13 WHERE id=$14`,
+                [client, phone, product, startDate, deadline, status, financialStatus, responsible, total, cost, paid, paymentMethod, notes, parseInt(data.id)]
+            );
             res.json({ success: true, id: data.id.toString() });
         } else {
-            const result = await pool.query(`INSERT INTO pedidos_v2 (client, phone, product, start_date, deadline, status, financial_status, responsible, total, cost, paid, payment_method, notes) VALUES ($1,$2,$3,$4,$5,$6,$7,$8,$9,$10,$11,$12,$13) RETURNING id;`,
-            [client, phone, product, startDate, deadline, status, financialStatus, responsible, total, cost, paid, paymentMethod, notes]);
+            const result = await pool.query(
+                `INSERT INTO pedidos_v2 (client, phone, product, start_date, deadline, status, financial_status, responsible, total, cost, paid, payment_method, notes) VALUES ($1,$2,$3,$4,$5,$6,$7,$8,$9,$10,$11,$12,$13) RETURNING id;`,
+                [client, phone, product, startDate, deadline, status, financialStatus, responsible, total, cost, paid, paymentMethod, notes]
+            );
             res.json({ success: true, id: result.rows[0].id.toString() });
         }
     } catch (err) {
-        res.json({ success: true, id: Math.floor(Math.random() * 100000).toString() });
+        console.error(err);
+        res.status(500).json({ success: false, error: 'Erro ao salvar pedido' });
     }
 }
 
@@ -244,7 +267,8 @@ async function handleDeletePedidos(req, res) {
         await pool.query('DELETE FROM pedidos_v2 WHERE id = $1', [parseInt(req.params.id)]);
         res.json({ success: true });
     } catch (err) {
-        res.json({ success: true });
+        console.error(err);
+        res.status(500).json({ success: false, error: 'Erro ao excluir pedido' });
     }
 }
 
@@ -271,10 +295,11 @@ app.get('/api/printers', async (req, res) => {
             date: row.date || '',
             initialHours: row.initial_hours || 0,
             notes: row.notes || '',
-            history: row.history_json ? JSON.parse(row.history_json) : []
+            history: parseJsonArraySafe(row.history_json)
         })));
     } catch (err) {
-        res.json([]);
+        console.error(err);
+        res.status(500).json({ error: 'Erro ao buscar impressoras' });
     }
 });
 
@@ -293,17 +318,21 @@ app.post('/api/printers', async (req, res) => {
         const historyJson = data.history ? JSON.stringify(data.history) : '[]';
 
         if (data.id && !isNaN(parseInt(data.id))) {
-            await pool.query(`UPDATE printers_v4 SET model=$1, serial=$2, supplier=$3, client=$4, contact=$5, valor=$6, date=$7, initial_hours=$8, notes=$9, history_json=$10 WHERE id=$11`,
-            [model, serial, supplier, client, contact, valor, date, initialHours, notes, historyJson, parseInt(data.id)]);
+            await pool.query(
+                `UPDATE printers_v4 SET model=$1, serial=$2, supplier=$3, client=$4, contact=$5, valor=$6, date=$7, initial_hours=$8, notes=$9, history_json=$10 WHERE id=$11`,
+                [model, serial, supplier, client, contact, valor, date, initialHours, notes, historyJson, parseInt(data.id)]
+            );
             res.json({ success: true, id: data.id.toString() });
         } else {
-            const result = await pool.query(`INSERT INTO printers_v4 (model, serial, supplier, client, contact, valor, date, initial_hours, notes, history_json) VALUES ($1,$2,$3,$4,$5,$6,$7,$8,$9,$10) RETURNING id;`,
-            [model, serial, supplier, client, contact, valor, date, initialHours, notes, historyJson]);
+            const result = await pool.query(
+                `INSERT INTO printers_v4 (model, serial, supplier, client, contact, valor, date, initial_hours, notes, history_json) VALUES ($1,$2,$3,$4,$5,$6,$7,$8,$9,$10) RETURNING id;`,
+                [model, serial, supplier, client, contact, valor, date, initialHours, notes, historyJson]
+            );
             res.json({ success: true, id: result.rows[0].id.toString() });
         }
     } catch (err) {
         console.error(err);
-        res.json({ success: true, id: Math.floor(Math.random() * 100000).toString() });
+        res.status(500).json({ success: false, error: 'Erro ao salvar impressora' });
     }
 });
 
@@ -312,7 +341,8 @@ app.delete('/api/printers/:id', async (req, res) => {
         await pool.query('DELETE FROM printers_v4 WHERE id = $1', [parseInt(req.params.id)]);
         res.json({ success: true });
     } catch (err) {
-        res.json({ success: true });
+        console.error(err);
+        res.status(500).json({ success: false, error: 'Erro ao excluir impressora' });
     }
 });
 
