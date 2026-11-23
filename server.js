@@ -83,6 +83,37 @@ app.get('/api/import-printers-now', async (req, res) => {
     }
 });
 
+// --- ROTA DE BACKUP COMPLETO DO BANCO ---
+app.get('/api/backup', async (req, res) => {
+    try {
+        const [printersRes, osRes, pedidosRes] = await Promise.all([
+            pool.query('SELECT * FROM printers_v4 ORDER BY id ASC'),
+            pool.query('SELECT * FROM os_v2 ORDER BY id ASC'),
+            pool.query('SELECT * FROM pedidos_v2 ORDER BY id ASC')
+        ]);
+
+        const backupData = {
+            exportedAt: new Date().toISOString(),
+            system: '3D Primus',
+            counts: {
+                printers: printersRes.rows.length,
+                os: osRes.rows.length,
+                pedidos: pedidosRes.rows.length
+            },
+            printers_v4: printersRes.rows,
+            os_v2: osRes.rows,
+            pedidos_v2: pedidosRes.rows
+        };
+
+        res.setHeader('Content-Type', 'application/json');
+        res.setHeader('Content-Disposition', 'attachment; filename="backup-3dprimus.json"');
+        res.send(JSON.stringify(backupData, null, 2));
+    } catch (err) {
+        console.error('Erro ao gerar backup:', err);
+        res.status(500).json({ error: 'Erro ao gerar backup do banco de dados.' });
+    }
+});
+
 // --- ROTAS DE ORDENS DE SERVIÇO (OS) ---
 app.get('/api/os', async (req, res) => {
     try {
